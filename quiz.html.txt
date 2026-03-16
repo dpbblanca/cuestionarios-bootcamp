@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Cuestionario | Bootcamp</title>
+<style>
+  :root{--bg:#0f172a;--panel:#1e293b;--sky:#0ea5e9;--muted:#94a3b8;}
+  *{box-sizing:border-box} body{margin:0;font-family:system-ui;-apple-system;background:var(--bg);color:#fff;}
+  .wrap{max-width:760px;margin:0 auto;padding:20px}
+  .card{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;margin-top:14px}
+  .opt{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);padding:12px;margin:.4rem 0;border-radius:10px;cursor:pointer}
+  .opt:hover{background:rgba(255,255,255,.15)}
+  .btn{background:#0284c7;padding:10px 14px;border-radius:8px;color:white;cursor:pointer;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+    index.html← Volver</a>
+
+    <div class="card">
+      <h1 id="title"></h1>
+      <p id="subtitle"></p>
+      <p id="counter"></p>
+      <p>Puntos: <span id="points">0</span></p>
+    </div>
+
+    <div class="card" id="quiz">
+      <h3 id="qtext"></h3>
+      <div id="options"></div>
+    </div>
+
+    <div class="card" id="result" style="display:none">
+      <h2>¡Completado!</h2>
+      <p>Puntos: <b id="r_points"></b></p>
+      <p>Aciertos: <b id="r_hits"></b> / <span id="r_total"></span></p>
+      index.htmlVolver</a>
+    </div>
+</div>
+
+quizzes.js</script>
+<script>
+  const p = new URLSearchParams(location.search)
+  const id = p.get("q")
+
+  if(!id || !window.QUIZZES || !window.QUIZZES[id]){
+    alert("Cuestionario no encontrado")
+  }
+
+  const QUIZ = window.QUIZZES[id]
+  document.getElementById("title").textContent = QUIZ.meta.title
+  document.getElementById("subtitle").textContent = QUIZ.meta.subtitle
+
+  let i=0, puntos=0, aciertos=0
+
+  function mostrar(){
+    document.getElementById("counter").textContent = 
+      "Pregunta "+(i+1)+" / "+QUIZ.items.length
+
+    const q = QUIZ.items[i]
+    document.getElementById("qtext").textContent = q.q
+
+    const box = document.getElementById("options")
+    box.innerHTML = ""
+
+    q.o.forEach((t,idx)=>{
+      const b = document.createElement("button")
+      b.className="opt"
+      b.textContent = t
+      b.onclick = ()=> responder(idx)
+      box.appendChild(b)
+    })
+  }
+
+  function responder(idx){
+    const q = QUIZ.items[i]
+    if(idx === q.a){ puntos+=100; aciertos++ }
+    i++
+    if(i >= QUIZ.items.length){
+      document.getElementById("quiz").style.display="none"
+      document.getElementById("result").style.display="block"
+      document.getElementById("r_points").textContent = puntos
+      document.getElementById("r_hits").textContent = aciertos
+      document.getElementById("r_total").textContent = QUIZ.items.length
+      return
+    }
+    mostrar()
+  }
+
+  mostrar()
+</script>
+</body>
+</html>
