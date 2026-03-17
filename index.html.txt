@@ -1,36 +1,186 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Cuestionarios Bootcamp | Consola</title>
+<meta charset="UTF-8">
+<title>Menú General de Cuestionarios</title>
+
 <style>
-  :root{--bg:#0f172a;--panel:#1e293b;--sky:#0ea5e9;--muted:#94a3b8;}
-  *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:#fff;}
-  .wrap{max-width:900px;margin:0 auto;padding:24px}
-  h1{margin:0 0 6px;font-size:28px;color:#7dd3fc}
-  p{color:var(--muted);margin:4px 0 16px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
-  a.item{display:block;text-decoration:none;color:#e2e8f0;background:var(--panel);border:1px solid rgba(255,255,255,.08);padding:14px;border-radius:12px;transition:.2s}
-  a.item:hover{border-color:var(--sky);transform:translateY(-1px)}
-  a.item b{display:block;color:#fff;margin-bottom:6px}
+  :root { 
+    --bg1:#0f172a;
+    --bg2:#1e293b;
+    --panel:#1e293b;
+    --hover:#334155;
+    --primary:#7dd3fc;
+    --muted:#94a3b8;
+  }
+
+  body {
+    background: linear-gradient(135deg,var(--bg1),var(--bg2));
+    font-family: Arial, sans-serif;
+    color:white;
+    margin:0;
+    padding:40px 20px;
+  }
+
+  h1 {
+    text-align:center;
+    color:var(--primary);
+    margin-bottom:8px;
+    font-size:40px;
+  }
+
+  p.subtitle {
+    text-align:center;
+    color:var(--muted);
+    margin-bottom:35px;
+  }
+
+  h2 {
+    margin-top:40px;
+    margin-bottom:12px;
+    font-size:24px;
+    color:var(--primary);
+    border-left:6px solid var(--primary);
+    padding-left:10px;
+  }
+
+  .grid {
+    max-width:720px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  a.item {
+    display:block;
+    padding:14px 18px;
+    background:var(--panel);
+    border-radius:10px;
+    color:white;
+    font-size:18px;
+    text-decoration:none;
+    border:1px solid rgba(255,255,255,0.12);
+    transition:0.2s;
+  }
+
+  a.item:hover {
+    background:var(--hover);
+    transform:translateX(6px);
+  }
+
 </style>
 </head>
-<body>
-  <div class="wrap">
-    <h1>Cuestionarios Bootcamp</h1>
-    <p>Elige el cuestionario que quieras lanzar.</p>
-    <div class="grid">
-      quiz.html?q=grafana
-        <b>Cuestionario Nº1 · Grafana</b>
-        <span>Empezar ahora →</span>
-      </a>
 
-      quiz.html?q=elastic
-        <b>Cuestionario · Elastic (ELK)</b>
-        <span>Empezar ahora →</span>
-      </a>
-    </div>
-  </div>
+<body>
+
+<h1>📚 Menú General de Cuestionarios</h1>
+<p class="subtitle">Selecciona un módulo para comenzar</p>
+
+
+<!-- ============================
+     OBSERVABILIDAD & DEVOPS
+============================= -->
+<h2>🟦 Observabilidad & DevOps</h2>
+<div class="grid">
+  grafana.html">📊 Grafana</a>
+  elastic.html">🔎 Elastic (ELK)</a>
+  docker.html">🐳 Docker</a>
+  docker-compose.html">📦 Docker Compose</a>
+</div>
+
+<!-- ============================
+              SQL
+============================= -->
+<h2>🟨 Bases de datos & SQL</h2>
+<div class="grid">
+  sql1.html">📝 SQL 1</a>
+  sql2.html">📘 SQL 2</a>
+  normalizacion.html">📐 Normalización</a>
+  persistencia.html">💾 Persistencia</a>
+</div>
+
+<!-- ============================
+        BACKEND SPRING
+============================= -->
+<h2>🟩 Backend (Java & Spring)</h2>
+<div class="grid">
+  spring.html">🌱 Spring</a>
+  spring-boot.html">🚀 Spring Boot</a>
+  webservices.html">🔗 Webservices</a>
+  cliente-servidor.html">🌐 Cliente‑Servidor</a>
+</div>
+
+<!-- ============================
+            FRONTEND
+============================= -->
+<h2>🟧 Front‑end</h2>
+<div class="grid">
+  frontend.html">🎨 HTML/CSS</a>
+  flex-grid.html">📐 Flexbox & Grid</a>
+  angular.html">🅰️ Angular</a>
+  rxjs.html">⚡ RxJS</a>
+</div>
+
+<!-- ============================
+    POO & ARQUITECTURA
+============================= -->
+<h2>🟪 POO & Arquitectura</h2>
+<div class="grid">
+  poo.html">🧱 POO</a>
+  poo-componentes.html">🧩 POO por Componentes</a>
+  patrones.html">🧠 Patrones de Diseño</a>
+  architecture.html">🏛️ Arquitectura de Software</a>
+</div>
+
+<!-- ============================
+            KAFKA
+============================= -->
+<h2>🟥 Kafka</h2>
+<div class="grid">
+  kafka1.html">🧩 Kafka 1 — Fundamentos</a>
+  kafka2.html">⚙️ Kafka 2 — Profundización</a>
+  kafka3.html">🧠 Kafka 3 — Avanzado</a>
+</div>
+
+<!-- ============================
+      TESTING & HERRAMIENTAS
+============================= -->
+<h2>⬛ Testing & Herramientas</h2>
+<div class="grid">
+  testing.html">🧪 Testing</a>
+  git.html">🔧 Git</a>
+  maven.html">📦 Maven</a>
+  io.html">📂 Entrada/Salida (I/O)</a>
+</div>
+
+<!-- ============================
+             SCRUM
+============================= -->
+<h2>🟫 Metodologías</h2>
+<div class="grid">
+  scrum.html">🌀 Scrum</a>
+</div>
+
+<!-- ============================
+         PANEL DEL PROFESOR
+============================= -->
+<h2>📊 Panel del Profesor</h2>
+<div class="grid">
+  panel.html">📈 Ver Dashboard</a>
+</div>
+
+
+<!-- ============================
+       REGISTRO DEL SW
+============================= -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log("Service Worker registrado"))
+      .catch(err => console.error("Error registrando SW:", err));
+  }
+</script>
+
 </body>
 </html>
