@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel del Profesor</title>
 
+<style>
+body{background:#0f172a;color:#e2e8f0;font-family:Arial;padding:20px;}
+h1{color:#7dd3fc;font-size:32px;margin:0 0 20px;}
+.card{background:#1e293b;padding:16px;border-radius:10px;margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.1);}
+th{color:#7dd3fc;text-align:left;}
+.btn{background:#0284c7;padding:10px 14px;border-radius:8px;color:white;text-decoration:none;margin-right:10px;}
+.btn:hover{background:#38bdf8;}
+</style>
+</head>
+<body>
+
+<h1>📊 Panel del Profesor</h1>
+
+<a href="index.html" class="btn">⬅ Volver al menú</a>
+
+<div class="card">
+  <h2>Resumen</h2>
+  <p><b>Total intentos:</b> <span id="tot">0</span></p>
+  <p><b>Media puntos:</b> <span id="mp">0</span></p>
+  <p><b>Media aciertos:</b> <span id="ma">0</span></p>
+</div>
+
+<div class="card">
+  <h2>Últimos resultados</h2>
+  <table>
+    <thead>
+      <tr><th>Fecha</th><th>Alumno</th><th>Quiz</th><th>Aciertos</th><th>Puntos</th></tr>
+    </thead>
+    <tbody id="tbl"></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Ranking (Top 20)</h2>
+  <table>
+    <thead>
+      <tr><th>Alumno</th><th>Intentos</th><th>Media Pts</th><th>Media Ac.</th></tr>
+    </thead>
+    <tbody id="rank"></tbody>
+  </table>
+</div>
+
+<script>
+const API = "http://localhost:5050";
+
+async function load() {
+  // Resumen
+  let r = await fetch(API+"/api/resumen");
+  let j = await r.json();
+  tot.textContent = j.totales;
+  mp.textContent  = j.media_puntos;
+  ma.textContent  = j.media_aciertos;
+
+  // Resultados recientes
+  r = await fetch(API+"/api/resultados");
+  j = await r.json();
+  tbl.innerHTML = "";
+  j.forEach(x=>{
+    tbl.innerHTML += `
+      <tr>
+        <td>${x.fecha_hora}</td>
+        <td>${x.nombre}</td>
+        <td>${x.cuestionario}</td>
+        <td>${x.aciertos}</td>
+        <td>${x.puntos}</td>
+      </tr>`;
+  });
+
+  // Ranking
+  r = await fetch(API+"/api/resumen");
+  j = await r.json();
+  rank.innerHTML = "";
+  j.ranking.forEach(x=>{
+    rank.innerHTML += `
+      <tr>
+        <td>${x.nombre}</td>
+        <td>${x.intentos}</td>
+        <td>${x.media_pts}</td>
+        <td>${x.media_ac}</td>
+      </tr>`;
+  });
+}
+
+load();
+</script>
+
+</body>
+</html>
