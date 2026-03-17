@@ -5,91 +5,110 @@
 <title>Panel del Profesor</title>
 
 <style>
-body{background:#0f172a;color:#e2e8f0;font-family:Arial;padding:20px;}
-h1{color:#7dd3fc;font-size:32px;margin:0 0 20px;}
-.card{background:#1e293b;padding:16px;border-radius:10px;margin-bottom:20px;}
-table{width:100%;border-collapse:collapse;}
-th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.1);}
-th{color:#7dd3fc;text-align:left;}
-.btn{background:#0284c7;padding:10px 14px;border-radius:8px;color:white;text-decoration:none;margin-right:10px;}
-.btn:hover{background:#38bdf8;}
+  body{background:#0f172a;color:#e2e8f0;font-family:Arial;margin:0;padding:24px;}
+  h1{color:#7dd3fc;font-size:32px;margin:0 0 16px;}
+  .btn{display:inline-block;background:#0284c7;color:white;text-decoration:none;padding:10px 14px;border-radius:8px;margin:6px 10px 16px 0;}
+  .btn:hover{background:#38bdf8;}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:8px 0 18px;}
+  .card{background:#1e293b;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px;}
+  .big{font-size:28px;font-weight:bold;color:#7dd3fc;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  table{width:100%;border-collapse:collapse;}
+  th,td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.1);font-size:14px;}
+  th{color:#7dd3fc;text-align:left;}
 </style>
 </head>
 <body>
 
 <h1>📊 Panel del Profesor</h1>
 
-<a href="index.html" class="btn">⬅ Volver al menú</a>
+index.html⬅ Volver al menú</a>
+panel.html⟲ Actualizar</a>
 
-<div class="card">
-  <h2>Resumen</h2>
-  <p><b>Total intentos:</b> <span id="tot">0</span></p>
-  <p><b>Media puntos:</b> <span id="mp">0</span></p>
-  <p><b>Media aciertos:</b> <span id="ma">0</span></p>
+<div class="cards">
+  <div class="card"><div>Total intentos</div><div class="big" id="kpi-intentos">0</div></div>
+  <div class="card"><div>Media puntos</div><div class="big" id="kpi-media-p">0</div></div>
+  <div class="card"><div>Media aciertos</div><div class="big" id="kpi-media-a">0</div></div>
 </div>
 
-<div class="card">
-  <h2>Últimos resultados</h2>
-  <table>
-    <thead>
-      <tr><th>Fecha</th><th>Alumno</th><th>Quiz</th><th>Aciertos</th><th>Puntos</th></tr>
-    </thead>
-    <tbody id="tbl"></tbody>
+<div class="grid">
+  <div class="card">
+    <h3>🏆 Ranking (Top 20 por media de puntos)</h3>
+    <table id="tbl-ranking">
+      <thead><tr><th>Alumno</th><th>Intentos</th><th>Media Pts</th><th>Media Ac.</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>📈 Medias por cuestionario</h3>
+    <canvas id="ch-quizzes" height="160"></canvas>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <h3>🧾 Últimos resultados</h3>
+  <table id="tbl-ultimos">
+    <thead><tr><th>Fecha</th><th>Alumno</th><th>Quiz</th><th>Aciertos</th><th>Puntos</th></tr></thead>
+    <tbody></tbody>
   </table>
 </div>
 
-<div class="card">
-  <h2>Ranking (Top 20)</h2>
-  <table>
-    <thead>
-      <tr><th>Alumno</th><th>Intentos</th><th>Media Pts</th><th>Media Ac.</th></tr>
-    </thead>
-    <tbody id="rank"></tbody>
-  </table>
-</div>
-
+<!-- Chart.js desde CDN para la gráfica -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-const API = "http://localhost:5050";
+const API = 'http://localhost:5050';
 
-async function load() {
-  // Resumen
-  let r = await fetch(API+"/api/resumen");
-  let j = await r.json();
-  tot.textContent = j.totales;
-  mp.textContent  = j.media_puntos;
-  ma.textContent  = j.media_aciertos;
+// KPIs + ranking + medias por quiz
+async function loadResumen(){
+  const r = await fetch(API + '/api/resumen');
+  const j = await r.json();
 
-  // Resultados recientes
-  r = await fetch(API+"/api/resultados");
-  j = await r.json();
-  tbl.innerHTML = "";
-  j.forEach(x=>{
-    tbl.innerHTML += `
-      <tr>
-        <td>${x.fecha_hora}</td>
-        <td>${x.nombre}</td>
-        <td>${x.cuestionario}</td>
-        <td>${x.aciertos}</td>
-        <td>${x.puntos}</td>
-      </tr>`;
-  });
+  // KPIs
+  document.getElementById('kpi-intentos').textContent = j.totales ?? 0;
+  document.getElementById('kpi-media-p').textContent  = (j.media_puntos ?? 0).toFixed ? j.media_puntos.toFixed(1) : j.media_puntos;
+  document.getElementById('kpi-media-a').textContent  = (j.media_aciertos ?? 0).toFixed ? j.media_aciertos.toFixed(1) : j.media_aciertos;
 
   // Ranking
-  r = await fetch(API+"/api/resumen");
-  j = await r.json();
-  rank.innerHTML = "";
-  j.ranking.forEach(x=>{
-    rank.innerHTML += `
-      <tr>
-        <td>${x.nombre}</td>
-        <td>${x.intentos}</td>
-        <td>${x.media_pts}</td>
-        <td>${x.media_ac}</td>
-      </tr>`;
+  const rb = document.querySelector('#tbl-ranking tbody');
+  rb.innerHTML = '';
+  (j.ranking || []).forEach(row=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${row.nombre}</td><td>${row.intentos}</td>
+                    <td>${row.media_pts}</td><td>${row.media_ac}</td>`;
+    rb.appendChild(tr);
+  });
+
+  // Gráfica medias por cuestionario
+  const labels = (j.por_quiz || []).map(x=>x.cuestionario);
+  const dataP  = (j.por_quiz || []).map(x=>x.media_pts);
+  if(window._chQ) window._chQ.destroy();
+  const ctx = document.getElementById('ch-quizzes').getContext('2d');
+  window._chQ = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[ {label:'Media puntos', data:dataP, backgroundColor:'#7dd3fc' } ] },
+    options:{ responsive:true, scales:{ y:{ beginAtZero:true } } }
   });
 }
 
-load();
+// Últimos resultados
+async function loadUltimos(){
+  const r = await fetch(API + '/api/resultados');
+  const j = await r.json();
+  const tbody = document.querySelector('#tbl-ultimos tbody');
+  tbody.innerHTML='';
+  (j || []).forEach(x=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${x.fecha_hora}</td><td>${x.nombre}</td><td>${x.cuestionario}</td>
+                    <td>${x.aciertos}</td><td>${x.puntos}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+(async function init(){
+  await loadResumen();
+  await loadUltimos();
+})();
 </script>
 
 </body>
