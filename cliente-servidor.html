@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cuestionario · Cliente‑Servidor</title>
+
+<style>
+  :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
+  body {
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color:#e2e8f0;
+    font-family: Arial, sans-serif;
+    margin:0; padding:40px 20px;
+    display:flex; justify-content:center;
+  }
+  .wrap { width:100%; max-width:700px; }
+  h1 { font-size:32px; text-align:center; margin:0 0 12px; color:var(--primary); }
+  .sub { color:var(--muted); text-align:center; margin:0 0 20px; }
+
+  .card {
+    background:var(--panel);
+    padding:24px;
+    border-radius:18px;
+    box-shadow:0 10px 24px rgba(0,0,0,0.45);
+    backdrop-filter:blur(6px);
+  }
+  #qtext { font-size:20px; font-weight:700; margin-bottom:14px; }
+
+  .opt {
+    width:100%; padding:14px; margin:8px 0;
+    background:#334155; border:none; border-radius:12px; color:white;
+    text-align:left; cursor:pointer; font-size:16px;
+    transition:background .2s, transform .15s;
+  }
+  .opt:hover { background:#475569; transform:translateX(4px); }
+
+  .row { display:flex; justify-content:space-between; margin-top:8px; color:var(--muted); }
+  .points b { color:var(--primary); }
+
+  .result {
+    margin-top:20px; padding:24px; text-align:center;
+    background:#1e293b; border-radius:12px;
+    border:1px solid rgba(255,255,255,.1);
+  }
+
+  .btn {
+    display:inline-block; padding:12px 20px; background:#0284c7;
+    border-radius:10px; margin-top:18px; font-weight:bold; color:white;
+    cursor:pointer; transition:.2s;
+  }
+  .btn:hover { background:#38bdf8; }
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <h1>🌐 Cuestionario · Cliente‑Servidor</h1>
+  <p class="sub">Modelo C/S · Protocolos · Puertos · Estados · Escalabilidad · Sesiones</p>
+
+  <div class="card" id="quiz-card">
+    <div id="qtext">Cargando…</div>
+    <div id="options"></div>
+
+    <div class="row">
+      <div id="counter">Pregunta 0/0</div>
+      <div class="points">Puntos: <b id="points">0</b></div>
+    </div>
+  </div>
+
+  <div class="result" id="result" style="display:none;">
+    <h2>🎉 ¡Has terminado!</h2>
+    <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
+    <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
+    <!-- El botón “Volver al inicio” se añade por JS (infalible) -->
+  </div>
+
+</div>
+
+<script>
+// ==============================
+//   PREGUNTAS CLIENTE‑SERVIDOR
+// ==============================
+const QUIZ = {
+  meta: { title: "Cliente‑Servidor" },
+  items: [
+    { q:"En el modelo cliente‑servidor, el cliente…",
+      o:["Ofrece un servicio que el servidor consume","Inicia la comunicación solicitando un recurso/servicio","Solo escucha en un puerto","Se ejecuta siempre en el mismo host del servidor"], a:1 },
+
+    { q:"¿Qué protocolo de transporte usa típicamente HTTP/1.1?",
+      o:["UDP","TCP","ICMP","ARP"], a:1 },
+
+    { q:"¿Qué puerto es el **por defecto** para HTTP y HTTPS?",
+      o:["80 y 443","21 y 25","22 y 110","8080 y 3306"], a:0 },
+
+    { q:"¿Qué significa que HTTP sea *stateless*?",
+      o:["Mantiene estado entre peticiones por defecto","No mantiene estado; cada petición es independiente","Solo funciona con sesiones persistentes","Requiere siempre cookies"], a:1 },
+
+    { q:"¿Para gestionar sesión/estado sobre HTTP es común usar…",
+      o:["Sockets RAW obligatorios","Cookies, tokens (JWT), o almacenamiento de sesión","SSH","FTP"], a:1 },
+
+    { q:"En un request/response típico, ¿quién abre la conexión?",
+      o:["El servidor","El cliente","El balanceador","El DNS"], a:1 },
+
+    { q:"¿Qué pieza suele repartir tráfico entre varios servidores para escalar?",
+      o:["Reverse proxy / Load balancer","Switch de capa 2 doméstico","Firewall personal","Cliente web"], a:0 },
+
+    { q:"¿Cuál **NO** es una ventaja del modelo C/S clásico?",
+      o:["Centralización y control","Escalabilidad horizontal del servidor","Menor acoplamiento cliente‑servidor","Total independencia de la red"], a:3 },
+
+    { q:"Un **socket** es…",
+      o:["Un protocolo de aplicación","La combinación IP:puerto que identifica un extremo de comunicación","Un router doméstico","Una API solo de Windows"], a:1 },
+
+    { q:"Para tiempo real con baja latencia en web, ¿qué opción es más adecuada?",
+      o:["Pull con refresco manual","Long polling únicamente","WebSockets (o HTTP/2 server push/HTTP/3)","Email"], a:2 },
+
+    { q:"En DNS, ¿qué hace un **A record**?",
+      o:["Mapea un nombre a una dirección IPv4","Mapea un nombre a IPv6","Alias de otro nombre (CNAME)","Indica servidores de correo (MX)"], a:0 },
+
+    { q:"Un servidor **stateless** detrás de un balanceador…",
+      o:["Requiere afinidad de sesión siempre","Puede atender cualquier petición sin recordar estado previo","No puede escalar horizontalmente","Debe almacenar todo en memoria"], a:1 }
+  ]
+};
+
+// ==============================
+//            MOTOR
+// ==============================
+let i = 0, points = 0, hits = 0;
+
+function mostrar(){
+  document.getElementById("counter").textContent =
+    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
+
+  document.getElementById("points").textContent = points;
+
+  const q = QUIZ.items[i];
+  document.getElementById("qtext").textContent = q.q;
+
+  const box = document.getElementById("options");
+  box.innerHTML = "";
+
+  q.o.forEach((txt, idx)=>{
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.textContent = txt;
+    btn.onclick = ()=> responder(idx);
+    box.appendChild(btn);
+  });
+}
+
+function responder(idx){
+  if (idx === QUIZ.items[i].a) { points += 100; hits++; }
+  i++;
+  if (i >= QUIZ.items.length) { final(); return; }
+  mostrar();
+}
+
+// ==============================
+//            FINAL
+// ==============================
+function final(){
+  // Mostrar resultados
+  document.getElementById("quiz-card").style.display = "none";
+  const res = document.getElementById("result");
+  res.style.display = "block";
+
+  // Pinta resultados
+  document.getElementById("r_points").textContent = points;
+  document.getElementById("r_hits").textContent   = hits;
+  document.getElementById("r_total").textContent  = QUIZ.items.length;
+
+  // Enviar al Microsoft Forms
+  enviarResultadosMicrosoftForms();
+
+  // Botón “Volver al inicio” — creado por JS (INFALIBLE)
+  const volver = document.createElement("button");
+  volver.className = "btn";
+  volver.textContent = "⬅️ Volver al inicio";
+  volver.onclick = ()=>{ location.href = "index.html"; };
+  res.appendChild(volver);
+}
+
+// ==============================
+//   ENVÍO A MICROSOFT FORMS
+// ==============================
+function enviarResultadosMicrosoftForms(){
+  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
+
+  const formUrl =
+    "https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
+
+  const data = new FormData();
+  // IDs confirmados de tu Form: Nombre | Cuestionario | Aciertos | Puntos | FechaHora
+  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
+  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
+  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
+  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
+  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
+
+  fetch(formUrl, { method:"POST", mode:"no-cors", body:data });
+}
+
+// Arranque
+mostrar();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cuestionario · Scrum</title>
+
+<style>
+  :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
+  body {
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    color:#e2e8f0;
+    font-family: Arial, sans-serif;
+    margin:0;
+    padding:40px 20px;
+    display:flex;
+    justify-content:center;
+  }
+
+  .wrap { width:100%; max-width:700px; }
+
+  h1 {
+    font-size:32px;
+    color:var(--primary);
+    text-align:center;
+    margin:0 0 12px;
+  }
+
+  .sub {
+    color:var(--muted);
+    text-align:center;
+    margin:0 0 20px;
+  }
+
+  .card {
+    background:var(--panel);
+    padding:24px;
+    border-radius:18px;
+    box-shadow:0 10px 24px rgba(0,0,0,0.45);
+    backdrop-filter:blur(6px);
+  }
+
+  #qtext {
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:14px;
+  }
+
+  .opt {
+    width:100%;
+    padding:14px;
+    margin:8px 0;
+    background:#334155;
+    border:none;
+    border-radius:12px;
+    color:white;
+    cursor:pointer;
+    font-size:16px;
+    text-align:left;
+    transition:background .2s, transform .15s;
+  }
+
+  .opt:hover {
+    background:#475569;
+    transform:translateX(4px);
+  }
+
+  .row {
+    display:flex;
+    justify-content:space-between;
+    margin-top:8px;
+    color:var(--muted);
+  }
+
+  .points b { color:var(--primary); }
+
+  .result {
+    margin-top:20px;
+    padding:24px;
+    text-align:center;
+    background:#1e293b;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.1);
+  }
+
+  .btn {
+    display:inline-block;
+    padding:12px 20px;
+    background:#0284c7;
+    border-radius:10px;
+    margin-top:18px;
+    font-weight:bold;
+    color:white;
+    cursor:pointer;
+    transition:.2s;
+  }
+
+  .btn:hover { background:#38bdf8; }
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<h1>📙 Cuestionario · Scrum</h1>
+<p class="sub">Roles · Eventos · Artefactos · Historias de Usuario</p>
+
+<div class="card" id="quiz-card">
+  <div id="qtext">Cargando…</div>
+  <div id="options"></div>
+
+  <div class="row">
+    <div id="counter">Pregunta 0/0</div>
+    <div class="points">Puntos: <b id="points">0</b></div>
+  </div>
+</div>
+
+<div class="result" id="result" style="display:none;">
+  <h2>🎉 ¡Has terminado!</h2>
+  <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
+  <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
+  <!-- El botón infalible lo añade JS -->
+</div>
+
+</div>
+
+<script>
+// ==============================
+//         PREGUNTAS SCRUM
+// ==============================
+const QUIZ = {
+  meta: { title:"Scrum" },
+  items: [
+
+    { q:"\"Como usuario registrado quiero un botón de login\"",
+      o:["OK","NO OK"], a:1 },
+
+    { q:"\"Como usuario no registrado quiero un botón para registrarme\"",
+      o:["OK","NO OK"], a:0 },
+
+    { q:"Las buenas Historias de Usuario deben seguir:",
+      o:["SMART","INVEST","INTEL","Que quepan en un post-it"], a:1 },
+
+    { q:"\"Como gestor hotel quiero establecer tarifas óptimas\"",
+      o:["OK","NO OK"], a:1 },
+
+    { q:"\"Como usuario quiero un gestor de correos para organizarme\"",
+      o:["OK","NO OK"], a:1 },
+
+    { q:"El Scrum Master es un líder",
+      o:["Verdadero","Falso"], a:1 },
+
+    { q:"El Scrum Master es un jefe de equipo",
+      o:["Verdadero","Falso"], a:1 },
+
+    { q:"Los Developers priorizan el Sprint Backlog",
+      o:["Verdadero","Falso"], a:1 },
+
+    { q:"Los Developers pueden tener tareas de gestión",
+      o:["Verdadero","Falso"], a:0 },
+
+    { q:"El Product Owner prioriza el Sprint Backlog",
+      o:["Verdadero","Falso"], a:1 },
+
+    { q:"El Product Owner prioriza el Product Backlog",
+      o:["Verdadero","Falso"], a:0 },
+
+    { q:"Todo el equipo Scrum participa en todos los eventos Scrum",
+      o:["Verdadero","Falso"], a:1 },
+
+    { q:"Scrum es siempre mejor que Waterfall",
+      o:["Verdadero","Falso"], a:1 },
+
+    { q:"¿Cuál es el evento Scrum más importante?",
+      o:["Daily Scrum","Sprint Review","Sprint Retrospective","Sprint Planning"], a:2 },
+
+    { q:"¿Cuáles son los eventos Scrum?",
+      o:[
+        "Planning, Sprint, Daily Scrum, Review, Retrospective",
+        "Planning, Sprint, Daily Sprint, Review, Retrospective",
+        "Planning, Sprint, Sprint Review",
+        "Scrum Planning, Sprint, Scrum Review"
+      ], a:0 },
+
+    { q:"El Manifiesto Ágil valora:",
+      o:[
+        "Seguir un plan sobre cambios",
+        "Documentación extensiva",
+        "Negociación contractual",
+        "Individuos e interacciones sobre procesos y herramientas"
+      ], a:3 },
+
+    { q:"¿Cuál NO aporta valor según el Manifiesto Ágil?",
+      o:["Documentación extensiva","Seguir un plan","Negociación contractual","Ninguna"], a:0 },
+
+    { q:"¿Cuál es el rol más importante en Scrum?",
+      o:["Product Owner","Ninguno","Scrum Master","Developers"], a:1 },
+
+    { q:"¿Cuál NO es un artefacto Scrum?",
+      o:["Product Backlog","Sprint Backlog","Sprint Delivery","Incremento"], a:2 }
+  ]
+};
+
+// ==============================
+//         MOTOR DEL QUIZ
+// ==============================
+let i = 0, points = 0, hits = 0;
+
+function mostrar(){
+  document.getElementById("counter").textContent =
+    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
+
+  document.getElementById("points").textContent = points;
+
+  const q = QUIZ.items[i];
+  document.getElementById("qtext").textContent = q.q;
+
+  const box = document.getElementById("options");
+  box.innerHTML = "";
+
+  q.o.forEach((txt, idx)=>{
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.textContent = txt;
+    btn.onclick = ()=> responder(idx);
+    box.appendChild(btn);
+  });
+}
+
+function responder(idx){
+  if(idx === QUIZ.items[i].a){ points += 100; hits++; }
+  i++;
+  if(i >= QUIZ.items.length){ final(); return; }
+  mostrar();
+}
+
+// ==============================
+//         FINAL
+// ==============================
+function final(){
+  document.getElementById("quiz-card").style.display = "none";
+
+  const res = document.getElementById("result");
+  res.style.display = "block";
+
+  document.getElementById("r_points").textContent = points;
+  document.getElementById("r_hits").textContent   = hits;
+  document.getElementById("r_total").textContent  = QUIZ.items.length;
+
+  enviarResultadosMicrosoftForms();
+
+  // BOTÓN INFALIBLE (creado por JS)
+  const volver = document.createElement("button");
+  volver.className = "btn";
+  volver.textContent = "⬅️ Volver al inicio";
+  volver.onclick = ()=>{ location.href = "index.html"; };
+  res.appendChild(volver);
+}
+
+// ==============================
+//   ENVÍO A MICROSOFT FORMS
+// ==============================
+function enviarResultadosMicrosoftForms(){
+
+  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
+
+  const formUrl =
+"https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
+
+  const data = new FormData();
+  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
+  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
+  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
+  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
+  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
+
+  fetch(formUrl, { method:"POST", mode:"no-cors", body:data });
+}
+
+mostrar();
+</script>
+
+</body>
+</html>
