@@ -76,6 +76,7 @@
   <h2>🎉 ¡Has terminado!</h2>
   <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
   <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
+
   <div id="btn-container"></div>
 </div>
 
@@ -88,7 +89,7 @@ const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const QUIZ = {
-  meta: { title:"docker" }, // Identificador para el match con index.html
+  meta: { title:"docker" }, // Identificador para el match en Supabase
   items: [
     { q:"¿Cuál es una diferencia clave entre contenedores y máquinas virtuales?", o:["Las VMs consumen menos recursos","Los contenedores comparten el kernel del host","Los contenedores necesitan hipervisor","Las VMs no ejecutan apps"], a:1 },
     { q:"¿Qué comando construye una imagen desde un Dockerfile?", o:["docker run","docker exec","docker build","docker pull"], a:2 },
@@ -134,9 +135,7 @@ function responder(idx){
 
 async function final(){
   document.getElementById("quiz-card").style.display = "none";
-  const resDiv = document.getElementById("result");
-  resDiv.style.display = "block";
-
+  document.getElementById("result").style.display = "block";
   document.getElementById("r_points").textContent = points;
   document.getElementById("r_hits").textContent = hits;
   document.getElementById("r_total").textContent = QUIZ.items.length;
@@ -153,7 +152,7 @@ async function final(){
       if (error) console.error("Error al actualizar nota:", error);
   }
 
-  // Botón volver
+  // Crear botón volver por JS
   const btnContainer = document.getElementById("btn-container");
   const volver = document.createElement("button");
   volver.className = "btn";
