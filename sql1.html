@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · SQL 1</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
   body {
@@ -49,7 +51,7 @@
     background:#0284c7; border-radius:10px;
     margin-top:18px; font-weight:bold; color:white;
     cursor:pointer; text-decoration:none;
-    transition:.2s;
+    transition:.2s; border:none;
   }
   .btn:hover { background:#38bdf8; }
 </style>
@@ -75,62 +77,40 @@
   <h2>🎉 ¡Has terminado!</h2>
   <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
   <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-
-  <!-- BOTÓN AUTOMÁTICO: se añade por JS -->
+  <div id="btn-container"></div>
 </div>
 
 </div>
 
 <script>
-// ==============================
-//       PREGUNTAS SQL 1
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"SQL 1" },
+  meta: { title:"sql1" }, // ID para Supabase
   items: [
-    { q:"Los tipos de datos en SQL son estándar, ya que vienen del modelo relacional",
-      o:["Verdadero","Falso"], a:1 },
-
-    { q:"¿Es posible crear bases de datos con SQL?",
-      o:["Sí, aunque depende del SGBD","Sí, siempre","No, nunca"], a:0 },
-
-    { q:"Podemos crear una tabla con el resultado de una query",
-      o:["Verdadero","Falso"], a:0 },
-
-    { q:"¿Podemos modificar el tipo de una columna con ALTER TABLE?",
-      o:["Sí, si los datos concuerdan","No","Sí, siempre"], a:0 },
-
-    { q:"¿Es lo mismo DROP y TRUNCATE?",
-      o:["Sí","No existe TRUNCATE","DROP elimina tabla, TRUNCATE solo datos"], a:2 },
-
-    { q:"¿Cuándo podemos crear constraints?",
-      o:["Al crear tabla o después con ALTER TABLE","Solo al crear tabla","Solo después"], a:0 },
-
-    { q:"La restricción UNIQUE puede aplicarse…",
-      o:["Solo a una columna","A columna o varias","Solo a nivel tabla"], a:1 },
-
-    { q:"Marca la opción INCORRECTA:",
-      o:["Una PK es única, varias candidatas","Una candidata identifica una fila","Si hay candidata no usada como PK, es mala normalización"], a:2 }
+    { q:"Los tipos de datos en SQL son estándar, ya que vienen del modelo relacional", o:["Verdadero","Falso"], a:1 },
+    { q:"¿Es posible crear bases de datos con SQL?", o:["Sí, aunque depende del SGBD","Sí, siempre","No, nunca"], a:0 },
+    { q:"Podemos crear una tabla con el resultado de una query", o:["Verdadero","Falso"], a:0 },
+    { q:"¿Podemos modificar el tipo de una columna con ALTER TABLE?", o:["Sí, si los datos concuerdan","No","Sí, siempre"], a:0 },
+    { q:"¿Es lo mismo DROP y TRUNCATE?", o:["Sí","No existe TRUNCATE","DROP elimina tabla, TRUNCATE solo datos"], a:2 },
+    { q:"¿Cuándo podemos crear constraints?", o:["Al crear tabla o después con ALTER TABLE","Solo al crear tabla","Solo después"], a:0 },
+    { q:"La restricción UNIQUE puede aplicarse…", o:["Solo a una columna","A columna o varias","Solo a nivel tabla"], a:1 },
+    { q:"Marca la opción INCORRECTA:", o:["Una PK es única, varias candidatas","Una candidata identifica una fila","Si hay candidata no usada como PK, es mala normalización"], a:2 }
   ]
 };
 
-// ==============================
-//       MOTOR DEL QUIZ
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q = QUIZ.items[i];
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
-
   q.o.forEach((txt, idx)=>{
     const b = document.createElement("button");
     b.className = "opt";
@@ -147,49 +127,33 @@ function responder(idx){
   mostrar();
 }
 
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display = "none";
   const res = document.getElementById("result");
   res.style.display = "block";
-
   document.getElementById("r_points").textContent = points;
-  document.getElementById("r_hits").textContent   = hits;
-  document.getElementById("r_total").textContent  = QUIZ.items.length;
+  document.getElementById("r_hits").textContent = hits;
+  document.getElementById("r_total").textContent = QUIZ.items.length;
 
-  // Enviar a Microsoft Forms
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'sql1' });
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  // Crear botón Volver al inicio (INFALIBLE)
+  const btnBox = document.getElementById("btn-container");
   const volver = document.createElement("button");
   volver.className = "btn";
   volver.textContent = "⬅️ Volver al inicio";
   volver.onclick = ()=>{ location.href = "index.html"; };
-  res.appendChild(volver);
-}
-
-// ==============================
-//   ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-
-  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
-
-  const formUrl =
-"https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data = new FormData();
-
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl, { method:"POST", mode:"no-cors", body:data });
+  btnBox.appendChild(volver);
 }
 
 mostrar();
 </script>
-
 </body>
 </html>
