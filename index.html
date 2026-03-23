@@ -2,150 +2,85 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consola de Cuestionarios - Base de Datos</title>
-    
+    <title>Consola General de Cuestionarios</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        :root {
-            --bg1:#0f172a;
-            --bg2:#1e293b;
-            --panel:#1e293b;
-            --hover:#334155;
-            --primary:#7dd3fc;
-            --muted:#94a3b8;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--bg1), var(--bg2));
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: white;
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            max-width: 720px;
-            width: 100%;
-        }
-
-        h1 { color: var(--primary); text-align: center; font-size: 32px; }
-
-        /* Caja de identificación */
-        .login-box {
-            background: var(--panel);
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid var(--primary);
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        input {
-            width: 80%;
-            padding: 12px;
-            margin-top: 10px;
-            border-radius: 8px;
-            border: none;
-            font-size: 16px;
-            outline: none;
-        }
-
-        h2 {
-            color: var(--primary);
-            border-left: 5px solid var(--primary);
-            padding-left: 15px;
-            margin-top: 30px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        /* Botones de examen */
-        .item {
-            display: block;
-            padding: 16px;
-            background: var(--panel);
-            border-radius: 12px;
-            color: white;
-            text-decoration: none;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: 0.3s;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        .item:hover {
-            background: var(--hover);
-            transform: translateX(8px);
-            border-color: var(--primary);
-        }
+        :root { --bg1:#0f172a; --bg2:#1e293b; --primary:#7dd3fc; --muted:#94a3b8; }
+        body { background: linear-gradient(135deg,var(--bg1),var(--bg2)); font-family: Arial; color:white; padding:40px 20px; }
+        .container { max-width:720px; margin:0 auto; }
+        h1 { text-align:center; color:var(--primary); }
+        .box { background:#1e293b; padding:20px; border-radius:10px; border:1px solid var(--primary); margin-bottom:30px; text-align:center; }
+        input { padding:10px; width:80%; border-radius:5px; border:none; margin-top:10px; }
+        h2 { color:var(--primary); border-left:5px solid var(--primary); padding-left:10px; margin-top:30px; }
+        .grid { display:grid; gap:10px; }
+        .item { padding:15px; background:#1e293b; border-radius:10px; color:white; border:1px solid rgba(255,255,255,0.1); cursor:pointer; transition:0.3s; }
+        .item:hover { background:#334155; transform:translateX(8px); border-color:var(--primary); }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>📚 Sistema de Cuestionarios</h1>
-        
-        <div class="login-box">
-            <label style="color: var(--muted);">Escribe tu nombre para empezar:</label><br>
-            <input type="text" id="nombreAlumno" placeholder="Ej: Tu Nombre Completo">
-        </div>
-
-        <h2>🟦 Módulos de Observabilidad</h2>
-        <div class="grid">
-            <div class="item" onclick="registrarYEntrar('Grafana')">📊 Grafana</div>
-            <div class="item" onclick="registrarYEntrar('Elastic ELK')">🔎 Elastic (ELK)</div>
-            <div class="item" onclick="registrarYEntrar('Docker')">🐳 Docker</div>
-        </div>
-
-        <h2>🟨 Bases de Datos</h2>
-        <div class="grid">
-            <div class="item" onclick="registrarYEntrar('SQL 1')">📝 SQL 1</div>
-            <div class="item" onclick="registrarYEntrar('SQL 2')">📘 SQL 2</div>
-        </div>
+<div class="container">
+    <h1>📚 Menú de Cuestionarios</h1>
+    <div class="box">
+        <label>Introduce tu nombre:</label><br>
+        <input type="text" id="nombreAlumno" placeholder="Tu nombre aquí...">
     </div>
 
-    <script>
-        // --- TU CONFIGURACIÓN DE SUPABASE ---
-        const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
-        
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <h2>🟦 Observabilidad & DevOps</h2>
+    <div class="grid">
+        <div onclick="registrar('Grafana')" class="item">📊 Grafana</div>
+        <div onclick="registrar('Elastic')" class="item">🔎 Elastic (ELK)</div>
+        <div onclick="registrar('Docker')" class="item">🐳 Docker</div>
+        <div onclick="registrar('Docker Compose')" class="item">📦 Docker Compose</div>
+    </div>
 
-        async function registrarYEntrar(nombreExamen) {
-            const nombre = document.getElementById('nombreAlumno').value.trim();
+    <h2>🟨 Bases de datos & SQL</h2>
+    <div class="grid">
+        <div onclick="registrar('SQL 1')" class="item">📝 SQL 1</div>
+        <div onclick="registrar('SQL 2')" class="item">📘 SQL 2</div>
+        <div onclick="registrar('Normalización')" class="item">📐 Normalización</div>
+    </div>
 
-            if (!nombre) {
-                alert("⚠️ Por favor, introduce tu nombre primero.");
-                return;
-            }
+    <h2>🟩 Backend (Java & Spring)</h2>
+    <div class="grid">
+        <div onclick="registrar('Spring')" class="item">🌱 Spring</div>
+        <div onclick="registrar('Spring Boot')" class="item">🚀 Spring Boot</div>
+        <div onclick="registrar('Webservices')" class="item">🔗 Webservices</div>
+    </div>
 
-            // GUARDAR EN LA BASE DE DATOS
-            const { error } = await _supabase
-                .from('resultados')
-                .insert([{ 
-                    alumno: nombre, 
-                    examen: nombreExamen, 
-                    nota: 0 
-                }]);
+    <h2>🟥 Kafka</h2>
+    <div class="grid">
+        <div onclick="registrar('Kafka 1')" class="item">🧩 Kafka 1</div>
+        <div onclick="registrar('Kafka 2')" class="item">⚙️ Kafka 2</div>
+    </div>
 
-            if (error) {
-                console.error("Error detallado:", error);
-                alert("❌ Error al conectar con la base de datos: " + error.message);
-            } else {
-                alert("✅ Registro exitoso para " + nombre + ".\nIniciando examen de " + nombreExamen);
-                // Aquí podrías añadir una línea para abrir el examen real:
-                // window.location.href = nombreExamen.toLowerCase() + ".html";
-            }
+    <h2>🟫 Metodologías</h2>
+    <div class="grid">
+        <div onclick="registrar('Scrum')" class="item">🌀 Scrum</div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function registrar(examen) {
+        const nombre = document.getElementById('nombreAlumno').value.trim();
+        if (!nombre) { alert("⚠️ Escribe tu nombre"); return; }
+
+        const { error } = await _supabase
+            .from('resultados')
+            .insert([{ alumno: nombre, examen: examen, nota: 0 }]);
+
+        if (error) {
+            alert("❌ ERROR: " + error.message + "\n\nRevisa si la tabla se llama 'resultados' en Supabase.");
+        } else {
+            alert("✅ ¡Éxito! Registrado: " + nombre + " en " + examen);
+            // Aquí puedes redirigir si tienes el archivo:
+            // window.location.href = examen.toLowerCase() + ".html";
         }
-    </script>
+    }
+</script>
 </body>
 </html>
