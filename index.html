@@ -18,7 +18,7 @@
     margin: 0; padding: 40px 20px;
     display: flex; flex-direction: column; align-items: center;
   }
-  .container { width: 100%; max-width: 1000px; }
+  .container { width: 100%; max-width: 1100px; }
   header { text-align: center; margin-bottom: 40px; }
   h1 { color: var(--primary); font-size: 2.5rem; margin-bottom: 8px; }
   p.sub { color: var(--muted); font-size: 1.1rem; }
@@ -42,29 +42,30 @@
   }
   .btn-login:hover { background: var(--primary); transform: scale(1.05); }
 
-  /* Grid de Exámenes */
+  /* Grid de Exámenes - Configurado para que quepan todos */
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 20px; width: 100%;
   }
   .exam-card {
     background: var(--card);
     padding: 20px; border-radius: 12px;
     border: 1px solid rgba(255,255,255,0.05);
-    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
     cursor: pointer; position: relative;
   }
   .exam-card:hover {
     transform: translateY(-5px);
     border-color: var(--primary);
     box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    background: #243147;
   }
-  .exam-card h3 { margin: 0 0 10px 0; color: var(--primary); font-size: 1.2rem; }
+  .exam-card h3 { margin: 0 0 10px 0; color: var(--primary); font-size: 1.1rem; }
   .exam-card p { margin: 0; font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
   .icon { font-size: 1.8rem; margin-bottom: 10px; display: block; }
 
-  /* Estado Bloqueado */
+  /* Estado Bloqueado al inicio */
   .disabled { opacity: 0.4; cursor: not-allowed !important; pointer-events: none; filter: grayscale(1); }
   
   #user-welcome { text-align: center; margin-bottom: 30px; }
@@ -86,88 +87,149 @@
 
   <div id="user-welcome" style="display:none;">
     <h2>Bienvenido/a, <span id="welcome-msg" style="color:var(--primary)"></span></h2>
-    <span class="logout-link" onclick="logout()">Cerrar sesión / Cambiar nombre</span>
+    <span class="logout-link" onclick="logout()">Cambiar de usuario</span>
   </div>
 
   <div class="grid" id="exam-grid">
     
-    <div class="exam-card disabled" onclick="comenzar('poo')">
+    <div class="exam-card disabled" onclick="comenzar('poo.html')">
       <span class="icon">📦</span>
       <h3>POO</h3>
       <p>Fundamentos, Clases y Objetos.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('poo_comp')">
+    <div class="exam-card disabled" onclick="comenzar('POO_Comp.html')">
       <span class="icon">🧩</span>
-      <h3>POO Componentes</h3>
-      <p>Arquitectura y Composición.</p>
+      <h3>POO por Componentes</h3>
+      <p>Inyección y arquitectura modular.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('sql1')">
+    <div class="exam-card disabled" onclick="comenzar('SQL1.html')">
       <span class="icon">📁</span>
       <h3>SQL 1</h3>
-      <p>DDL, Tipos de datos y PK.</p>
+      <p>DDL, Constraints y Primary Keys.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('sql2')">
+    <div class="exam-card disabled" onclick="comenzar('SQL2.html')">
       <span class="icon">📊</span>
       <h3>SQL 2</h3>
-      <p>DML, Joins y Agregaciones.</p>
+      <p>Joins, DML y Agregaciones.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('normalizacion')">
+    <div class="exam-card disabled" onclick="comenzar('Normalizacion.html')">
       <span class="icon">📐</span>
       <h3>Normalización</h3>
-      <p>Formas Normales (1FN, 2FN, 3FN).</p>
+      <p>1FN, 2FN, 3FN y diseño lógico.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('persistencia')">
+    <div class="exam-card disabled" onclick="comenzar('Persistencia.html')">
       <span class="icon">💾</span>
       <h3>Persistencia</h3>
-      <p>Mapeo y gestión de datos.</p>
+      <p>Manejo de estados y DAO/Repository.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('spring')">
+    <div class="exam-card disabled" onclick="comenzar('Spring.html')">
       <span class="icon">🍃</span>
       <h3>Spring</h3>
       <p>Inyección de Dependencias e IoC.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('springboot')">
+    <div class="exam-card disabled" onclick="comenzar('SpringBoot.html')">
       <span class="icon">🚀</span>
       <h3>Spring Boot</h3>
       <p>Auto-configuración y Web MVC.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('kafka1')">
+    <div class="exam-card disabled" onclick="comenzar('Kafka1.html')">
       <span class="icon">📨</span>
       <h3>Kafka 1</h3>
-      <p>Arquitectura de Eventos.</p>
+      <p>Arquitectura de mensajería básica.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('kafka2')">
+    <div class="exam-card disabled" onclick="comenzar('Kafka2.html')">
       <span class="icon">📡</span>
       <h3>Kafka 2</h3>
-      <p>Consumer Groups y Particiones.</p>
+      <p>Particiones y Grupos de Consumo.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('rxjs')">
+    <div class="exam-card disabled" onclick="comenzar('Kafka3.html')">
+      <span class="icon">⚙️</span>
+      <h3>Kafka 3</h3>
+      <p>Compaction, Schemas y Semántica.</p>
+    </div>
+
+    <div class="exam-card disabled" onclick="comenzar('RxJS.html')">
       <span class="icon">⚡</span>
       <h3>RxJS</h3>
-      <p>Programación Reactiva.</p>
+      <p>Programación reactiva y Observables.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('testing')">
+    <div class="exam-card disabled" onclick="comenzar('Testing.html')">
       <span class="icon">🧪</span>
       <h3>Testing</h3>
-      <p>JUnit, Mockito y TDD.</p>
+      <p>Unitarios, Mocks y TDD/BDD.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('io')">
+    <div class="exam-card disabled" onclick="comenzar('IO.html')">
       <span class="icon">📂</span>
       <h3>I/O Java</h3>
-      <p>Streams, Files y NIO2.</p>
+      <p>Streams, Buffers y NIO2.</p>
     </div>
 
-    <div class="exam-card disabled" onclick="comenzar('scrum')">
-      <span class="icon">
+    <div class="exam-card disabled" onclick="comenzar('Scrum.html')">
+      <span class="icon">🏃</span>
+      <h3>Scrum</h3>
+      <p>Roles, Eventos y Agilidad.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+window.onload = () => {
+  const guardado = localStorage.getItem('alumnoActivo');
+  if (guardado) mostrarUIUsuario(guardado);
+};
+
+function login() {
+  const nombre = document.getElementById('alumno-nombre').value.trim();
+  if (!nombre) return alert("Escribe tu nombre");
+  localStorage.setItem('alumnoActivo', nombre);
+  mostrarUIUsuario(nombre);
+}
+
+function logout() {
+  localStorage.removeItem('alumnoActivo');
+  location.reload();
+}
+
+function mostrarUIUsuario(nombre) {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('user-welcome').style.display = 'block';
+  document.getElementById('welcome-msg').textContent = nombre;
+  
+  // Habilitar todos los cuestionarios
+  const cards = document.querySelectorAll('.exam-card');
+  cards.forEach(c => c.classList.remove('disabled'));
+}
+
+async function comenzar(archivo) {
+  const alumno = localStorage.getItem('alumnoActivo');
+  // Obtenemos el ID del examen quitando el .html (ej: SQL1)
+  const idExamen = archivo.split('.')[0].toLowerCase();
+
+  // Registrar inicio en Supabase
+  await _supabase
+    .from('resultados')
+    .upsert({ alumno: alumno, examen: idExamen, nota: 0 }, { onConflict: 'alumno,examen' });
+
+  // Redirigir al archivo
+  location.href = archivo;
+}
+</script>
+</body>
+</html>
