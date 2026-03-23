@@ -1,94 +1,243 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consola de Cuestionarios - Bootcamp</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<title>Portal de Certificaciones · Java Fullstack</title>
 
-    <style>
-        :root { --bg1:#0f172a; --bg2:#1e293b; --primary:#7dd3fc; --muted:#94a3b8; }
-        body { background: linear-gradient(135deg, var(--bg1), var(--bg2)); font-family: 'Segoe UI', sans-serif; color: white; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { max-width: 800px; width: 100%; }
-        h1 { color: var(--primary); text-align: center; font-size: 32px; margin-bottom: 5px; }
-        .login-box { background: rgba(30, 41, 59, 0.8); padding: 20px; border-radius: 15px; border: 1px solid var(--primary); margin-bottom: 30px; text-align: center; }
-        input { width: 80%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; font-size: 16px; color: #1e293b; font-weight: bold; }
-        h2 { color: var(--primary); border-left: 5px solid var(--primary); padding-left: 15px; margin-top: 30px; font-size: 18px; text-transform: uppercase; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-        .item { display: flex; align-items: center; padding: 14px; background: #1e293b; border-radius: 10px; color: white; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; cursor: pointer; font-size: 15px; }
-        .item:hover { background: #334155; transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .icon { margin-right: 12px; font-size: 20px; }
-    </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  :root { 
+    --bg:#0f172a; --card:#1e293b; --primary:#7dd3fc; 
+    --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8;
+  }
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 40px 20px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .container { width: 100%; max-width: 900px; }
+  header { text-align: center; margin-bottom: 40px; }
+  h1 { color: var(--primary); font-size: 2.5rem; margin-bottom: 8px; }
+  p.sub { color: var(--muted); font-size: 1.1rem; }
+
+  /* Login Section */
+  .login-box {
+    background: var(--card);
+    padding: 20px; border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    margin-bottom: 30px; display: flex; gap: 10px;
+    justify-content: center; align-items: center;
+  }
+  input {
+    padding: 12px; border-radius: 8px; border: 1px solid #334155;
+    background: #0f172a; color: white; width: 250px;
+  }
+  .btn-login {
+    padding: 12px 20px; background: var(--accent);
+    color: var(--bg); border: none; border-radius: 8px;
+    font-weight: bold; cursor: pointer;
+  }
+
+  /* Grid de Exámenes */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px; width: 100%;
+  }
+  .exam-card {
+    background: var(--card);
+    padding: 20px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer; position: relative;
+    overflow: hidden;
+  }
+  .exam-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+  }
+  .exam-card h3 { margin: 0 0 10px 0; color: var(--primary); }
+  .exam-card p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  .icon { font-size: 1.5rem; margin-bottom: 10px; display: block; }
+
+  /* Bloqueo */
+  .disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+</style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🚀 Consola de Cuestionarios</h1>
-    
-    <div class="login-box">
-        <label>👤 Nombre del Alumno:</label><br>
-        <input type="text" id="nombreAlumno" placeholder="Escribe tu nombre para empezar...">
+  <header>
+    <h1>🌱 Academy Java Fullstack</h1>
+    <p class="sub">Selecciona un módulo para comenzar tu evaluación</p>
+  </header>
+
+  <div class="login-box" id="login-section">
+    <input type="text" id="alumno-nombre" placeholder="Tu nombre completo...">
+    <button class="btn-login" onclick="login()">Identificarse</button>
+  </div>
+
+  <div id="user-welcome" style="display:none; text-align: center; margin-bottom: 20px;">
+    <h2 id="welcome-msg"></h2>
+    <button onclick="logout()" style="background:none; border:none; color:var(--primary); cursor:pointer; text-decoration:underline;">Cambiar de usuario</button>
+  </div>
+
+  <div class="grid" id="exam-grid">
+    <div class="exam-card disabled" onclick="comenzar('poo')">
+      <span class="icon">📦</span>
+      <h3>POO</h3>
+      <p>Clases, Herencia y Polimorfismo.</p>
     </div>
 
-    <h2>🟦 Observabilidad & DevOps</h2>
-    <div class="grid">
-        <div class="item" onclick="registrar('grafana')"><span class="icon">📊</span> Grafana</div>
-        <div class="item" onclick="registrar('elastic')"><span class="icon">🔎</span> Elastic (ELK)</div>
-        <div class="item" onclick="registrar('docker')"><span class="icon">🐳</span> Docker</div>
-        <div class="item" onclick="registrar('docker-compose')"><span class="icon">📦</span> Docker Compose</div>
-        <div class="item" onclick="registrar('Maven')"><span class="icon">🛠️</span> Maven</div>
+    <div class="exam-card disabled" onclick="comenzar('poo_comp')">
+      <span class="icon">🧩</span>
+      <h3>POO por Componentes</h3>
+      <p>Inyección y arquitectura modular.</p>
     </div>
 
-    <h2>🟨 Desarrollo Frontend & Tools</h2>
-    <div class="grid">
-        <div class="item" onclick="registrar('Git')"><span class="icon">🐙</span> Git</div>
-        <div class="item" onclick="registrar('angular')"><span class="icon">🅰️</span> Angular</div>
-        <div class="item" onclick="registrar('flex-grid')"><span class="icon">📏</span> Flex & Grid</div>
-        <div class="item" onclick="registrar('frontend')"><span class="icon">💻</span> Frontend General</div>
+    <div class="exam-card disabled" onclick="comenzar('sql1')">
+      <span class="icon">📁</span>
+      <h3>SQL 1</h3>
+      <p>DDL, Constraints y Primary Keys.</p>
     </div>
 
-    <h2>🟩 Arquitectura & Backend</h2>
-    <div class="grid">
-        <div class="item" onclick="registrar('architecture')"><span class="icon">🏛️</span> Architecture</div>
-        <div class="item" onclick="registrar('Patrones')"><span class="icon">🧩</span> Patrones</div>
-        <div class="item" onclick="registrar('cliente-servidor')"><span class="icon">🖥️</span> Cliente-Servidor</div>
-        <div class="item" onclick="registrar('Webservices')"><span class="icon">🔗</span> Webservices</div>
-        <div class="item" onclick="registrar('persistencia')"><span class="icon">💾</span> Persistencia</div>
+    <div class="exam-card disabled" onclick="comenzar('sql2')">
+      <span class="icon">📊</span>
+      <h3>SQL 2</h3>
+      <p>Joins, DML y Agregaciones.</p>
     </div>
 
-    <h2>🟥 Datos & Mensajería</h2>
-    <div class="grid">
-        <div class="item" onclick="registrar('normalizacion')"><span class="icon">📐</span> Normalización</div>
-        <div class="item" onclick="registrar('kafka1')"><span class="icon">📨</span> Kafka 1</div>
-        <div class="item" onclick="registrar('kafka2')"><span class="icon">⚙️</span> Kafka 2</div>
-        <div class="item" onclick="registrar('kafka3')"><span class="icon">🚀</span> Kafka 3</div>
-        <div class="item" onclick="registrar('io')"><span class="icon">📤</span> I/O System</div>
+    <div class="exam-card disabled" onclick="comenzar('normalizacion')">
+      <span class="icon">📐</span>
+      <h3>Normalización</h3>
+      <p>1FN, 2FN, 3FN y diseño lógico.</p>
     </div>
+
+    <div class="exam-card disabled" onclick="comenzar('persistencia')">
+      <span class="icon">💾</span>
+      <h3>Persistencia</h3>
+      <p>Manejo de estados y DAO/Repository.</p>
+    </div>
+
+    <div class="exam-card disabled" onclick="comenzar('spring')">
+      <span class="icon">🍃</span>
+      <h3>Spring Framework</h3>
+      <p>IoC, DI y ecosistema Spring.</p>
+    </div>
+
+    <div class="exam-card disabled" onclick="comenzar('springboot')">
+      <span class="icon">🚀</span>
+      <h3>Spring Boot</h3>
+      <p>Auto-configuración y Starters.</p>
+    </div>
+
+    <div class="exam-card disabled" onclick="comenzar('kafka1')">
+      <span class="icon">📨</span>
+      <h3>Kafka 1</h3>
+      <p>Arquitectura de mensajería básica.</p>
+    </div>
+
+    <div class="exam-card disabled" onclick="comenzar('kafka2')">
+      <span class="icon">📡</span>
+      <h3>Kafka 2</h3>
+      <p>Particiones y Grupos de Consumo.</p>
+    </div>
+
+    <div class="exam-card disabled" onclick="comenzar('rxjs')">
+      <span class="icon">⚡</span>
+      <h3>RxJS</h3>
+      <p>Programación reactiva y Observables.</p>
+    </div>
+
+    <div class="exam-card disabled" onclick="comenzar('testing')">
+      <span class="icon">🧪</span>
+      <h3>Testing</h3>
+      <p>Unitarios, Mocks y TDD.</p>
+    </div>
+
+    <div class="exam-card disabled" onclick="comenzar('io')">
+      <span class="icon">📂</span>
+      <h3>Entrada / Salida</h3>
+      <p>Streams, Buffers y NIO2.</p>
+    </div>
+
+    <div class="exam-card disabled" onclick="comenzar('scrum')">
+      <span class="icon">🏃</span>
+      <h3>Scrum</h3>
+      <p>Roles, Eventos y Agilidad.</p>
+    </div>
+  </div>
 </div>
 
 <script>
-    // Configuración de conexión
-    const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function registrar(archivoExamen) {
-        const nombre = document.getElementById('nombreAlumno').value.trim();
-        if (!nombre) { alert("⚠️ Escribe tu nombre antes de elegir un tema"); return; }
+// Al cargar, comprobar si hay usuario
+window.onload = () => {
+  const guardado = localStorage.getItem('alumnoActivo');
+  if (guardado) {
+    mostrarUIUsuario(guardado);
+  }
+};
 
-        // 1. Guardamos el intento en la tabla 'resultados'
-        const { error } = await _supabase
-            .from('resultados')
-            .insert([{ alumno: nombre, examen: archivoExamen, nota: 0 }]);
+function login() {
+  const nombre = document.getElementById('alumno-nombre').value.trim();
+  if (!nombre) return alert("Escribe tu nombre");
+  localStorage.setItem('alumnoActivo', nombre);
+  mostrarUIUsuario(nombre);
+}
 
-        if (error) {
-            alert("❌ ERROR: " + error.message);
-        } else {
-            // 2. Redirigimos al archivo .html correspondiente
-            window.location.href = archivoExamen + ".html";
-        }
-    }
+function logout() {
+  localStorage.removeItem('alumnoActivo');
+  location.reload();
+}
+
+function mostrarUIUsuario(nombre) {
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('user-welcome').style.display = 'block';
+  document.getElementById('welcome-msg').textContent = "Hola, " + nombre;
+  
+  // Habilitar tarjetas
+  const cards = document.querySelectorAll('.exam-card');
+  cards.forEach(c => c.classList.remove('disabled'));
+}
+
+async function comenzar(idExamen) {
+  const alumno = localStorage.getItem('alumnoActivo');
+  
+  // 1. Registrar intento en Supabase (nota 0 inicial)
+  const { error } = await _supabase
+    .from('resultados')
+    .insert([{ alumno: alumno, examen: idExamen, nota: 0 }]);
+
+  if (error) {
+    console.error("Error al registrar:", error);
+  }
+
+  // 2. Redirigir al archivo correspondiente (ej: poo.html, spring.html...)
+  // Importante: Los nombres de los archivos deben coincidir con los IDs pasados
+  let url = "";
+  switch(idExamen) {
+    case 'poo_comp': url = 'POO_Comp.html'; break;
+    case 'sql1': url = 'SQL1.html'; break;
+    case 'sql2': url = 'SQL2.html'; break;
+    case 'normalizacion': url = 'Normalizacion.html'; break;
+    case 'persistencia': url = 'Persistencia.html'; break;
+    case 'springboot': url = 'SpringBoot.html'; break;
+    case 'spring': url = 'Spring.html'; break;
+    case 'io': url = 'IO.html'; break;
+    case 'rxjs': url = 'RxJS.html'; break;
+    default: url = idExamen.charAt(0).toUpperCase() + idExamen.slice(1) + ".html";
+  }
+  
+  location.href = url;
+}
 </script>
 
 </body>
