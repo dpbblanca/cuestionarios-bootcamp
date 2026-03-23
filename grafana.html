@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Grafana</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,.85); }
   body {
@@ -48,6 +50,7 @@
     display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px; font-weight:bold; color:white;
     text-decoration:none; transition:background .2s;
+    cursor:pointer; border: none;
   }
   .btn:hover{ background:#38bdf8; }
 </style>
@@ -73,60 +76,42 @@
   <h2>🎉 ¡Has terminado!</h2>
   <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
   <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-
-  <!-- BOTÓN CORRECTO -->
-  <a href="index.html" class="btn">⬅️ Volver al inicio</a>
+  <div id="btn-container"></div>
 </div>
 
 </div>
 
 <script>
-// ==============================
-//       PREGUNTAS GRAFANA
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"Grafana" },
+  meta: { title:"grafana" }, // Identificador para el match
   items: [
-    { q:"¿Qué herramienta se utiliza principalmente para crear dashboards con múltiples orígenes de datos?",
-      o:["Logstash","Kibana","Apache Superset","Grafana"], a:3 },
-    { q:"¿Qué destaca de Grafana?",
-      o:["Solo SQL","No alertas","Múltiples fuentes de datos","Solo logs"], a:2 },
-    { q:"¿Qué tipo de datos puede mostrar Grafana?",
-      o:["Solo logs","Solo CPU","Gráficos/tablas/etc","Solo OS"], a:2 },
-    { q:"¿Qué sistemas operativos soporta?",
-      o:["Windows","Linux","Muchos sistemas","Android"], a:2 },
-    { q:"¿Cuál es uno de los puntos fuertes?",
-      o:["Audio","Reconocimiento","Multi‑origen","Compilar"], a:2 },
-    { q:"Grafana es…",
-      o:["BD","Observabilidad","Cloud","Lenguaje"], a:1 },
-    { q:"Característica de Grafana",
-      o:["Encriptación","Alertas","Almacenamiento","ML"], a:1 },
-    { q:"¿Qué es una plantilla en Grafana?",
-      o:["Estática","Variables","Fuente","PDF"], a:1 },
-    { q:"Grafana vs Kibana",
-      o:["Métricas vs logs","Libre vs no","Visualiza vs ingesta","Son iguales"], a:0 },
-    { q:"Las métricas son…",
-      o:["Cualitativas","Cuantitativas","Logs","Feedback"], a:1 }
+    { q:"¿Qué herramienta se utiliza principalmente para crear dashboards con múltiples orígenes de datos?", o:["Logstash","Kibana","Apache Superset","Grafana"], a:3 },
+    { q:"¿Qué destaca de Grafana?", o:["Solo SQL","No alertas","Múltiples fuentes de datos","Solo logs"], a:2 },
+    { q:"¿Qué tipo de datos puede mostrar Grafana?", o:["Solo logs","Solo CPU","Gráficos/tablas/etc","Solo OS"], a:2 },
+    { q:"¿Qué sistemas operativos soporta?", o:["Windows","Linux","Muchos sistemas","Android"], a:2 },
+    { q:"¿Cuál es uno de los puntos fuertes?", o:["Audio","Reconocimiento","Multi‑origen","Compilar"], a:2 },
+    { q:"Grafana es…", o:["BD","Observabilidad","Cloud","Lenguaje"], a:1 },
+    { q:"Característica de Grafana", o:["Encriptación","Alertas","Almacenamiento","ML"], a:1 },
+    { q:"¿Qué es una plantilla en Grafana?", o:["Estática","Variables","Fuente","PDF"], a:1 },
+    { q:"Grafana vs Kibana", o:["Métricas vs logs","Libre vs no","Visualiza vs ingesta","Son iguales"], a:0 },
+    { q:"Las métricas son…", o:["Cualitativas","Cuantitativas","Logs","Feedback"], a:1 }
   ]
 };
 
-// ==============================
-//       Motor del test
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q = QUIZ.items[i];
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
-
   q.o.forEach((txt, idx)=>{
     const b = document.createElement("button");
     b.className = "opt";
@@ -143,43 +128,34 @@ function responder(idx){
   mostrar();
 }
 
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display = "none";
   document.getElementById("result").style.display = "block";
-
   document.getElementById("r_points").textContent = points;
   document.getElementById("r_hits").textContent = hits;
   document.getElementById("r_total").textContent = QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
-}
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'grafana' });
 
-// ==============================
-//     ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
-
-  const formUrl = "https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data = new FormData();
-
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl, {
-    method: "POST",
-    mode: "no-cors",
-    body: data
-  });
+  const btnContainer = document.getElementById("btn-container");
+  const back = document.createElement("button");
+  back.className = "btn";
+  back.textContent = "⬅️ Volver al inicio";
+  back.onclick = () => { location.href = "index.html"; };
+  btnContainer.appendChild(back);
 }
 
 mostrar();
 </script>
-
 </body>
 </html>
