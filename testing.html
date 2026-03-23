@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Testing</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
   body {
@@ -46,7 +48,7 @@
   .btn {
     display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px; font-weight:bold; color:white;
-    cursor:pointer; transition:.2s;
+    cursor:pointer; transition:.2s; border:none; text-decoration:none;
   }
   .btn:hover { background:#38bdf8; }
 </style>
@@ -72,70 +74,42 @@
     <h2>🎉 ¡Has terminado!</h2>
     <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
     <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-    <!-- El botón “Volver al inicio” lo añadimos por JS para que no pueda romperse -->
+    <div id="btn-container"></div>
   </div>
 
 </div>
 
 <script>
-// ==============================
-//          PREGUNTAS TESTING
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"Testing" },
+  meta: { title:"testing" }, // ID para Supabase
   items: [
-    { q:"¿Qué define mejor un test unitario?",
-      o:["Valida todo el sistema de extremo a extremo","Valida una unidad de código aislada (p.ej. una función/clase)","Valida la integración con servicios externos en entorno real","Valida rendimiento bajo alta carga"], a:1 },
-
-    { q:"¿Qué es un test de integración?",
-      o:["Prueba una unidad aislada con dobles de prueba","Prueba la interacción entre varios módulos/servicios reales o simulados","Prueba la UI con un navegador real","Prueba solo la base de datos"], a:1 },
-
-    { q:"¿Qué es un test end‑to‑end (E2E)?",
-      o:["Prueba una función en memoria","Prueba desde la interfaz hasta el almacenamiento, como lo haría un usuario","Prueba únicamente el backend","Prueba la documentación"], a:1 },
-
-    { q:"Orden recomendado de la pirámide de tests (de más a menos cantidad):",
-      o:["E2E → Integración → Unit","Unit → Integración → E2E","Integración → Unit → E2E","Cualquiera, no hay recomendaciones"], a:1 },
-
-    { q:"¿Qué es TDD?",
-      o:["Desarrollar primero la implementación y luego los tests","Escribir primero el test que falla y después el código que lo hace pasar","Hacer pruebas manuales de regresión","Medir cobertura antes de codificar"], a:1 },
-
-    { q:"En TDD, la secuencia correcta es:",
-      o:["Refactor → Red → Green","Green → Red → Refactor","Red → Green → Refactor","Red → Refactor → Green"], a:2 },
-
-    { q:"Cobertura de código (coverage) del 100% implica…",
-      o:["Ausencia de bugs","Que todo el comportamiento está validado","Que todas las líneas se ejecutaron al menos una vez, no garantiza ausencia de bugs","Que el rendimiento es óptimo"], a:2 },
-
-    { q:"¿Qué es un *mock*?",
-      o:["Un doble que registra llamadas reales a un servicio","Un doble que simula un colaborador y permite verificar interacciones","Un doble con datos reales de producción","Un test manual"], a:1 },
-
-    { q:"¿Qué es un *stub*?",
-      o:["Un doble que devuelve respuestas predefinidas sin verificar interacciones","Un sistema de logs","Un script de despliegue","Un driver de base de datos"], a:0 },
-
-    { q:"BDD (Behavior‑Driven Development) se centra en…",
-      o:["La arquitectura interna","El comportamiento esperado expresado en un lenguaje común (ej. Given‑When‑Then)","Solo pruebas de UI","Solo microservicios"], a:1 },
-
-    { q:"Un buen test unitario debería ser…",
-      o:["Lento y dependiente de red","Rápido, determinista y aislado","Impredecible para simular casos reales","Dependiente del orden de ejecución"], a:1 },
-
-    { q:"¿Qué es una prueba de regresión?",
-      o:["Probar una nueva feature sin mirar lo anterior","Detener el pipeline si hay fallos intermitentes","Verificar que cambios no rompen funcionalidades existentes","Solo medir performance"], a:2 }
+    { q:"¿Qué define mejor un test unitario?", o:["Valida todo el sistema de extremo a extremo","Valida una unidad de código aislada (p.ej. una función/clase)","Valida la integración con servicios externos en entorno real","Valida rendimiento bajo alta carga"], a:1 },
+    { q:"¿Qué es un test de integración?", o:["Prueba una unidad aislada con dobles de prueba","Prueba la interacción entre varios módulos/servicios reales o simulados","Prueba la UI con un navegador real","Prueba solo la base de datos"], a:1 },
+    { q:"¿Qué es un test end‑to‑end (E2E)?", o:["Prueba una función en memoria","Prueba desde la interfaz hasta el almacenamiento, como lo haría un usuario","Prueba únicamente el backend","Prueba la documentación"], a:1 },
+    { q:"Orden recomendado de la pirámide de tests (de más a menos cantidad):", o:["E2E → Integración → Unit","Unit → Integración → E2E","Integración → Unit → E2E","Cualquiera, no hay recomendaciones"], a:1 },
+    { q:"¿Qué es TDD?", o:["Desarrollar primero la implementación y luego los tests","Escribir primero el test que falla y después el código que lo hace pasar","Hacer pruebas manuales de regresión","Medir cobertura antes de codificar"], a:1 },
+    { q:"En TDD, la secuencia correcta es:", o:["Refactor → Red → Green","Green → Red → Refactor","Red → Green → Refactor","Red → Refactor → Green"], a:2 },
+    { q:"Cobertura de código (coverage) del 100% implica…", o:["Ausencia de bugs","Que todo el comportamiento está validado","Que todas las líneas se ejecutaron al menos una vez, no garantiza ausencia de bugs","Que el rendimiento es óptimo"], a:2 },
+    { q:"¿Qué es un *mock*?", o:["Un doble que registra llamadas reales a un servicio","Un doble que simula un colaborador y permite verificar interacciones","Un doble con datos reales de producción","Un test manual"], a:1 },
+    { q:"¿Qué es un *stub*?", o:["Un doble que devuelve respuestas predefinidas sin verificar interacciones","Un sistema de logs","Un script de despliegue","Un driver de base de datos"], a:0 },
+    { q:"BDD (Behavior‑Driven Development) se centra en…", o:["La arquitectura interna","El comportamiento esperado expresado en un lenguaje común (ej. Given‑When‑Then)","Solo pruebas de UI","Solo microservicios"], a:1 },
+    { q:"Un buen test unitario debería ser…", o:["Lento y dependiente de red","Rápido, determinista y aislado","Impredecible para simular casos reales","Dependiente del orden de ejecución"], a:1 },
+    { q:"¿Qué es una prueba de regresión?", o:["Probar una nueva feature sin mirar lo anterior","Detener el pipeline si hay fallos intermitentes","Verificar que cambios no rompen funcionalidades existentes","Solo medir performance"], a:2 }
   ]
 };
 
-// ==============================
-//            MOTOR
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q = QUIZ.items[i];
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
   q.o.forEach((txt, idx)=>{
@@ -154,54 +128,33 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//            FINAL
-// ==============================
-function final(){
-  // Mostrar resultados
+async function final(){
   document.getElementById("quiz-card").style.display = "none";
   const res = document.getElementById("result");
   res.style.display = "block";
-
-  // Pinta resultados
   document.getElementById("r_points").textContent = points;
-  document.getElementById("r_hits").textContent   = hits;
-  document.getElementById("r_total").textContent  = QUIZ.items.length;
+  document.getElementById("r_hits").textContent = hits;
+  document.getElementById("r_total").textContent = QUIZ.items.length;
 
-  // Enviar al Microsoft Forms
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'testing' });
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  // Botón “Volver al inicio” creado por JS (INFALIBLE)
+  const btnBox = document.getElementById("btn-container");
   const volver = document.createElement("button");
   volver.className = "btn";
   volver.textContent = "⬅️ Volver al inicio";
   volver.onclick = ()=>{ location.href = "index.html"; };
-  res.appendChild(volver);
+  btnBox.appendChild(volver);
 }
 
-// ==============================
-//   ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
-
-  const formUrl =
-    "https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data = new FormData();
-  // IDs confirmados de tu Form: Nombre | Cuestionario | Aciertos | Puntos | FechaHora
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl, { method:"POST", mode:"no-cors", body:data });
-}
-
-// Arranque
 mostrar();
 </script>
-
 </body>
 </html>
