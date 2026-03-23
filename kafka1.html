@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Kafka 1 (Fundamentos)</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
   body {
@@ -48,7 +50,7 @@
   .btn {
     display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px; font-weight:bold; color:white;
-    cursor:pointer; transition:.2s;
+    cursor:pointer; transition:.2s; border: none; text-decoration: none;
   }
   .btn:hover { background:#38bdf8; }
 </style>
@@ -74,73 +76,44 @@
     <h2>🎉 ¡Has terminado!</h2>
     <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
     <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-    <!-- El botón “Volver al inicio” se añade por JS (infalible) -->
+    <div id="btn-container"></div>
   </div>
 
 </div>
 
 <script>
-// ==============================
-//       PREGUNTAS KAFKA 1
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"Kafka 1 (Fundamentos)" },
+  meta: { title:"kafka1" }, // ID para el match en Supabase
   items: [
-    { q:"Kafka es principalmente…",
-      o:["Un SGBD relacional","Una plataforma de streaming de eventos distribuida","Un orquestador de contenedores","Un sistema de colas en memoria sin disco"], a:1 },
-
-    { q:"¿Qué es un *topic* en Kafka?",
-      o:["Una instancia de broker","Un flujo categorizado de registros (eventos)","Un grupo de consumidores","Un proceso del SO"], a:1 },
-
-    { q:"¿Para qué sirven las *partitions*?",
-      o:["Para limitar el tamaño del clúster","Para paralelizar y escalar el *throughput* de un topic","Para almacenar configuración","Para aislar Zookeeper"], a:1 },
-
-    { q:"El *offset* en Kafka es…",
-      o:["El ID del broker","La versión del cliente","La posición ordenada de un registro dentro de una partición","El tamaño en bytes del batch"], a:2 },
-
-    { q:"Orden de los mensajes en Kafka:",
-      o:["Global para todo el topic","Por partición","Indefinido siempre","Solo por grupo de consumidor"], a:1 },
-
-    { q:"¿Qué es un *consumer group*?",
-      o:["Todos los brokers del clúster","Varios consumidores que cooperan y comparten particiones de un topic","Una réplica de un topic","Un índice secundario"], a:1 },
-
-    { q:"Replicación en Kafka:",
-      o:["Se define por *replication factor* del topic","No existe","Siempre es 1","Solo funciona en modo lectura"], a:0 },
-
-    { q:"Durabilidad del productor (acks):",
-      o:["acks=0 confirma sin enviar","acks=1 confirma al líder","acks=all espera al líder y réplicas sincronizadas (ISR)","acks=none confirma al consumidor"], a:2 },
-
-    { q:"¿Qué hace un *idempotent producer*?",
-      o:["Evita duplicados desde el productor en fallos y reintentos","Duplica mensajes para resiliencia","Genera offsets globales","Desactiva la confirmación"], a:0 },
-
-    { q:"Retención en Kafka:",
-      o:["Siempre borra al consumir","Controla cuanto tiempo/tamaño se conservan los registros en disco","Solo existe en memoria","Se resetea con cada reinicio"], a:1 },
-
-    { q:"En versiones actuales, ¿qué componente reemplaza a ZooKeeper como *controller* del clúster?",
-      o:["KRaft (Kafka Raft)","Etcd","Consul","Nada, sigue ZooKeeper"], a:0 },
-
-    { q:"Elegir la afirmación correcta:",
-      o:["Un topic tiene múltiples particiones; un consumidor de un grupo puede leer varias particiones","Un topic solo puede tener 1 partición","Las particiones no se pueden replicar","Un grupo de consumidores no puede escalar"], a:0 }
+    { q:"Kafka es principalmente…", o:["Un SGBD relacional","Una plataforma de streaming de eventos distribuida","Un orquestador de contenedores","Un sistema de colas en memoria sin disco"], a:1 },
+    { q:"¿Qué es un *topic* en Kafka?", o:["Una instancia de broker","Un flujo categorizado de registros (eventos)","Un grupo de consumidores","Un proceso del SO"], a:1 },
+    { q:"¿Para qué sirven las *partitions*?", o:["Para limitar el tamaño del clúster","Para paralelizar y escalar el *throughput* de un topic","Para almacenar configuración","Para aislar Zookeeper"], a:1 },
+    { q:"El *offset* en Kafka es…", o:["El ID del broker","La versión del cliente","La posición ordenada de un registro dentro de una partición","El tamaño en bytes del batch"], a:2 },
+    { q:"Orden de los mensajes en Kafka:", o:["Global para todo el topic","Por partición","Indefinido siempre","Solo por grupo de consumidor"], a:1 },
+    { q:"¿Qué es un *consumer group*?", o:["Todos los brokers del clúster","Varios consumidores que cooperan y comparten particiones de un topic","Una réplica de un topic","Un índice secundario"], a:1 },
+    { q:"Replicación en Kafka:", o:["Se define por *replication factor* del topic","No existe","Siempre es 1","Solo funciona en modo lectura"], a:0 },
+    { q:"Durabilidad del productor (acks):", o:["acks=0 confirma sin enviar","acks=1 confirma al líder","acks=all espera al líder y réplicas sincronizadas (ISR)","acks=none confirma al consumidor"], a:2 },
+    { q:"¿Qué hace un *idempotent producer*?", o:["Evita duplicados desde el productor en fallos y reintentos","Duplica mensajes para resiliencia","Genera offsets globales","Desactiva la confirmación"], a:0 },
+    { q:"Retención en Kafka:", o:["Siempre borra al conocer","Controla cuanto tiempo/tamaño se conservan los registros en disco","Solo existe en memoria","Se resetea con cada reinicio"], a:1 },
+    { q:"En versiones actuales, ¿qué componente reemplaza a ZooKeeper como *controller* del clúster?", o:["KRaft (Kafka Raft)","Etcd","Consul","Nada, sigue ZooKeeper"], a:0 },
+    { q:"Elegir la afirmación correcta:", o:["Un topic tiene múltiples particiones; un consumidor de un grupo puede leer varias particiones","Un topic solo puede tener 1 partición","Las particiones no se pueden replicar","Un grupo de consumidores no puede escalar"], a:0 }
   ]
 };
 
-// ==============================
-//            MOTOR
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q = QUIZ.items[i];
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
-
   q.o.forEach((txt, idx)=>{
     const btn = document.createElement("button");
     btn.className = "opt";
@@ -157,54 +130,33 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//            FINAL
-// ==============================
-function final(){
-  // Mostrar resultados
+async function final(){
   document.getElementById("quiz-card").style.display = "none";
   const res = document.getElementById("result");
   res.style.display = "block";
-
   document.getElementById("r_points").textContent = points;
-  document.getElementById("r_hits").textContent   = hits;
-  document.getElementById("r_total").textContent  = QUIZ.items.length;
+  document.getElementById("r_hits").textContent = hits;
+  document.getElementById("r_total").textContent = QUIZ.items.length;
 
-  // Enviar a Microsoft Forms
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'kafka1' });
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  // Botón "Volver al inicio" — creado por JS (INFALIBLE)
+  const btnBox = document.getElementById("btn-container");
   const volver = document.createElement("button");
   volver.className = "btn";
   volver.textContent = "⬅️ Volver al inicio";
   volver.onclick = ()=>{ location.href = "index.html"; };
-  res.appendChild(volver);
+  btnBox.appendChild(volver);
 }
 
-// ==============================
-//   ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
-
-  const formUrl =
-    "https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data = new FormData();
-  // IDs confirmados de tu Form:
-  // Nombre | Cuestionario | Aciertos | Puntos | FechaHora
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl, { method:"POST", mode:"no-cors", body:data });
-}
-
-// Arranque
 mostrar();
 </script>
-
 </body>
 </html>
