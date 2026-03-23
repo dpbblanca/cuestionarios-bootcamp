@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Scrum</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
   body {
@@ -92,6 +94,8 @@
     color:white;
     cursor:pointer;
     transition:.2s;
+    border: none;
+    text-decoration: none;
   }
 
   .btn:hover { background:#38bdf8; }
@@ -118,105 +122,51 @@
   <h2>🎉 ¡Has terminado!</h2>
   <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
   <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-  <!-- El botón infalible lo añade JS -->
+  <div id="btn-container"></div>
 </div>
 
 </div>
 
 <script>
-// ==============================
-//         PREGUNTAS SCRUM
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"Scrum" },
+  meta: { title:"scrum" }, // ID para el match en Supabase
   items: [
-
-    { q:"\"Como usuario registrado quiero un botón de login\"",
-      o:["OK","NO OK"], a:1 },
-
-    { q:"\"Como usuario no registrado quiero un botón para registrarme\"",
-      o:["OK","NO OK"], a:0 },
-
-    { q:"Las buenas Historias de Usuario deben seguir:",
-      o:["SMART","INVEST","INTEL","Que quepan en un post-it"], a:1 },
-
-    { q:"\"Como gestor hotel quiero establecer tarifas óptimas\"",
-      o:["OK","NO OK"], a:1 },
-
-    { q:"\"Como usuario quiero un gestor de correos para organizarme\"",
-      o:["OK","NO OK"], a:1 },
-
-    { q:"El Scrum Master es un líder",
-      o:["Verdadero","Falso"], a:1 },
-
-    { q:"El Scrum Master es un jefe de equipo",
-      o:["Verdadero","Falso"], a:1 },
-
-    { q:"Los Developers priorizan el Sprint Backlog",
-      o:["Verdadero","Falso"], a:1 },
-
-    { q:"Los Developers pueden tener tareas de gestión",
-      o:["Verdadero","Falso"], a:0 },
-
-    { q:"El Product Owner prioriza el Sprint Backlog",
-      o:["Verdadero","Falso"], a:1 },
-
-    { q:"El Product Owner prioriza el Product Backlog",
-      o:["Verdadero","Falso"], a:0 },
-
-    { q:"Todo el equipo Scrum participa en todos los eventos Scrum",
-      o:["Verdadero","Falso"], a:1 },
-
-    { q:"Scrum es siempre mejor que Waterfall",
-      o:["Verdadero","Falso"], a:1 },
-
-    { q:"¿Cuál es el evento Scrum más importante?",
-      o:["Daily Scrum","Sprint Review","Sprint Retrospective","Sprint Planning"], a:2 },
-
-    { q:"¿Cuáles son los eventos Scrum?",
-      o:[
-        "Planning, Sprint, Daily Scrum, Review, Retrospective",
-        "Planning, Sprint, Daily Sprint, Review, Retrospective",
-        "Planning, Sprint, Sprint Review",
-        "Scrum Planning, Sprint, Scrum Review"
-      ], a:0 },
-
-    { q:"El Manifiesto Ágil valora:",
-      o:[
-        "Seguir un plan sobre cambios",
-        "Documentación extensiva",
-        "Negociación contractual",
-        "Individuos e interacciones sobre procesos y herramientas"
-      ], a:3 },
-
-    { q:"¿Cuál NO aporta valor según el Manifiesto Ágil?",
-      o:["Documentación extensiva","Seguir un plan","Negociación contractual","Ninguna"], a:0 },
-
-    { q:"¿Cuál es el rol más importante en Scrum?",
-      o:["Product Owner","Ninguno","Scrum Master","Developers"], a:1 },
-
-    { q:"¿Cuál NO es un artefacto Scrum?",
-      o:["Product Backlog","Sprint Backlog","Sprint Delivery","Incremento"], a:2 }
+    { q:"\"Como usuario registrado quiero un botón de login\"", o:["OK","NO OK"], a:1 },
+    { q:"\"Como usuario no registrado quiero un botón para registrarme\"", o:["OK","NO OK"], a:0 },
+    { q:"Las buenas Historias de Usuario deben seguir:", o:["SMART","INVEST","INTEL","Que quepan en un post-it"], a:1 },
+    { q:"\"Como gestor hotel quiero establecer tarifas óptimas\"", o:["OK","NO OK"], a:1 },
+    { q:"\"Como usuario quiero un gestor de correos para organizarme\"", o:["OK","NO OK"], a:1 },
+    { q:"El Scrum Master es un líder", o:["Verdadero","Falso"], a:1 },
+    { q:"El Scrum Master es un jefe de equipo", o:["Verdadero","Falso"], a:1 },
+    { q:"Los Developers priorizan el Sprint Backlog", o:["Verdadero","Falso"], a:1 },
+    { q:"Los Developers pueden tener tareas de gestión", o:["Verdadero","Falso"], a:0 },
+    { q:"El Product Owner prioriza el Sprint Backlog", o:["Verdadero","Falso"], a:1 },
+    { q:"El Product Owner prioriza el Product Backlog", o:["Verdadero","Falso"], a:0 },
+    { q:"Todo el equipo Scrum participa en todos los eventos Scrum", o:["Verdadero","Falso"], a:1 },
+    { q:"Scrum es siempre mejor que Waterfall", o:["Verdadero","Falso"], a:1 },
+    { q:"¿Cuál es el evento Scrum más importante?", o:["Daily Scrum","Sprint Review","Sprint Retrospective","Sprint Planning"], a:2 },
+    { q:"¿Cuáles son los eventos Scrum?", o:["Planning, Sprint, Daily Scrum, Review, Retrospective","Planning, Sprint, Daily Sprint, Review, Retrospective","Planning, Sprint, Sprint Review","Scrum Planning, Sprint, Scrum Review"], a:0 },
+    { q:"El Manifiesto Ágil valora:", o:["Seguir un plan sobre cambios","Documentación extensiva","Negociación contractual","Individuos e interacciones sobre procesos y herramientas"], a:3 },
+    { q:"¿Cuál NO aporta valor según el Manifiesto Ágil?", o:["Documentación extensiva","Seguir un plan","Negociación contractual","Ninguna"], a:0 },
+    { q:"¿Cuál es el rol más importante en Scrum?", o:["Product Owner","Ninguno","Scrum Master","Developers"], a:1 },
+    { q:"¿Cuál NO es un artefacto Scrum?", o:["Product Backlog","Sprint Backlog","Sprint Delivery","Incremento"], a:2 }
   ]
 };
 
-// ==============================
-//         MOTOR DEL QUIZ
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q = QUIZ.items[i];
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
-
   q.o.forEach((txt, idx)=>{
     const btn = document.createElement("button");
     btn.className = "opt";
@@ -233,51 +183,33 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//         FINAL
-// ==============================
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display = "none";
-
   const res = document.getElementById("result");
   res.style.display = "block";
-
   document.getElementById("r_points").textContent = points;
-  document.getElementById("r_hits").textContent   = hits;
-  document.getElementById("r_total").textContent  = QUIZ.items.length;
+  document.getElementById("r_hits").textContent = hits;
+  document.getElementById("r_total").textContent = QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'scrum' });
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  // BOTÓN INFALIBLE (creado por JS)
+  const btnBox = document.getElementById("btn-container");
   const volver = document.createElement("button");
   volver.className = "btn";
   volver.textContent = "⬅️ Volver al inicio";
   volver.onclick = ()=>{ location.href = "index.html"; };
-  res.appendChild(volver);
-}
-
-// ==============================
-//   ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-
-  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
-
-  const formUrl =
-"https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data = new FormData();
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl, { method:"POST", mode:"no-cors", body:data });
+  btnBox.appendChild(volver);
 }
 
 mostrar();
 </script>
-
 </body>
 </html>
