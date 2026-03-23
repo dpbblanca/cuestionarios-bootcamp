@@ -1,156 +1,151 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Menú General de Cuestionarios</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consola de Cuestionarios - Base de Datos</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-  :root {
-    --bg1:#0f172a;
-    --bg2:#1e293b;
-    --panel:#1e293b;
-    --hover:#334155;
-    --primary:#7dd3fc;
-    --muted:#94a3b8;
-  }
+    <style>
+        :root {
+            --bg1:#0f172a;
+            --bg2:#1e293b;
+            --panel:#1e293b;
+            --hover:#334155;
+            --primary:#7dd3fc;
+            --muted:#94a3b8;
+        }
 
-  body {
-    background: linear-gradient(135deg,var(--bg1),var(--bg2));
-    font-family: Arial, sans-serif;
-    color:white;
-    margin:0;
-    padding:40px 20px;
-  }
+        body {
+            background: linear-gradient(135deg, var(--bg1), var(--bg2));
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-  h1 {
-    text-align:center;
-    color:var(--primary);
-    margin-bottom:8px;
-    font-size:40px;
-  }
+        .container {
+            max-width: 720px;
+            width: 100%;
+        }
 
-  p.subtitle {
-    text-align:center;
-    color:var(--muted);
-    margin-bottom:35px;
-  }
+        h1 { color: var(--primary); text-align: center; font-size: 32px; }
 
-  h2 {
-    margin-top:40px;
-    margin-bottom:12px;
-    font-size:24px;
-    color:var(--primary);
-    border-left:6px solid var(--primary);
-    padding-left:10px;
-  }
+        /* Caja de identificación */
+        .login-box {
+            background: var(--panel);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid var(--primary);
+            margin-bottom: 30px;
+            text-align: center;
+        }
 
-  .grid {
-    max-width:720px;
-    margin:0 auto;
-    display:grid;
-    grid-template-columns:1fr;
-    gap:10px;
-  }
+        input {
+            width: 80%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            outline: none;
+        }
 
-  a.item {
-    display:block;
-    padding:14px 18px;
-    background:var(--panel);
-    border-radius:10px;
-    color:white;
-    font-size:18px;
-    text-decoration:none;
-    border:1px solid rgba(255,255,255,0.12);
-    transition:0.2s;
-  }
+        h2 {
+            color: var(--primary);
+            border-left: 5px solid var(--primary);
+            padding-left: 15px;
+            margin-top: 30px;
+        }
 
-  a.item:hover {
-    background:var(--hover);
-    transform:translateX(6px);
-  }
-</style>
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        /* Botones de examen */
+        .item {
+            display: block;
+            padding: 16px;
+            background: var(--panel);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.3s;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .item:hover {
+            background: var(--hover);
+            transform: translateX(8px);
+            border-color: var(--primary);
+        }
+    </style>
 </head>
-
 <body>
 
-<h1>📚 Menú General de Cuestionarios</h1>
-<p class="subtitle">Selecciona un módulo para comenzar</p>
+    <div class="container">
+        <h1>📚 Sistema de Cuestionarios</h1>
+        
+        <div class="login-box">
+            <label style="color: var(--muted);">Escribe tu nombre para empezar:</label><br>
+            <input type="text" id="nombreAlumno" placeholder="Ej: Tu Nombre Completo">
+        </div>
 
+        <h2>🟦 Módulos de Observabilidad</h2>
+        <div class="grid">
+            <div class="item" onclick="registrarYEntrar('Grafana')">📊 Grafana</div>
+            <div class="item" onclick="registrarYEntrar('Elastic ELK')">🔎 Elastic (ELK)</div>
+            <div class="item" onclick="registrarYEntrar('Docker')">🐳 Docker</div>
+        </div>
 
-<!-- Observabilidad -->
-<h2>🟦 Observabilidad & DevOps</h2>
-<div class="grid">
-  <a href="grafana.html" class="item">📊 Grafana</a>
-  <a href="elastic.html" class="item">🔎 Elastic (ELK)</a>
-  <a href="docker.html" class="item">🐳 Docker</a>
-  <a href="docker-compose.html" class="item">📦 Docker Compose</a>
-</div>
+        <h2>🟨 Bases de Datos</h2>
+        <div class="grid">
+            <div class="item" onclick="registrarYEntrar('SQL 1')">📝 SQL 1</div>
+            <div class="item" onclick="registrarYEntrar('SQL 2')">📘 SQL 2</div>
+        </div>
+    </div>
 
+    <script>
+        // --- TU CONFIGURACIÓN DE SUPABASE ---
+        const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+        
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-<!-- SQL -->
-<h2>🟨 Bases de datos & SQL</h2>
-<div class="grid">
-  <a href="sql1.html" class="item">📝 SQL 1</a>
-  <a href="sql2.html" class="item">📘 SQL 2</a>
-  <a href="normalizacion.html" class="item">📐 Normalización</a>
-  <a href="persistencia.html" class="item">💾 Persistencia</a>
-</div>
+        async function registrarYEntrar(nombreExamen) {
+            const nombre = document.getElementById('nombreAlumno').value.trim();
 
+            if (!nombre) {
+                alert("⚠️ Por favor, introduce tu nombre primero.");
+                return;
+            }
 
-<!-- Backend -->
-<h2>🟩 Backend (Java & Spring)</h2>
-<div class="grid">
-  <a href="spring.html" class="item">🌱 Spring</a>
-  <a href="spring-boot.html" class="item">🚀 Spring Boot</a>
-  <a href="webservices.html" class="item">🔗 Webservices</a>
-  <a href="cliente-servidor.html" class="item">🌐 Cliente‑Servidor</a>
-</div>
+            // GUARDAR EN LA BASE DE DATOS
+            const { error } = await _supabase
+                .from('resultados')
+                .insert([{ 
+                    alumno: nombre, 
+                    examen: nombreExamen, 
+                    nota: 0 
+                }]);
 
-
-<!-- Frontend -->
-<h2>🟧 Front‑end</h2>
-<div class="grid">
-  <a href="frontend.html" class="item">🎨 HTML/CSS</a>
-  <a href="flex-grid.html" class="item">📐 Flexbox & Grid</a>
-  <a href="angular.html" class="item">🅰️ Angular</a>
-  <a href="rxjs.html" class="item">⚡ RxJS</a>
-</div>
-
-
-<!-- POO -->
-<h2>🟪 POO & Arquitectura</h2>
-<div class="grid">
-  <a href="poo.html" class="item">🧱 POO</a>
-  <a href="poo-componentes.html" class="item">🧩 POO por Componentes</a>
-  <a href="patrones.html" class="item">🧠 Patrones de Diseño</a>
-  <a href="architecture.html" class="item">🏛️ Arquitectura de Software</a>
-</div>
-
-
-<!-- Kafka -->
-<h2>🟥 Kafka</h2>
-<div class="grid">
-  <a href="kafka1.html" class="item">🧩 Kafka 1 — Fundamentos</a>
-  <a href="kafka2.html" class="item">⚙️ Kafka 2 — Profundización</a>
-  <a href="kafka3.html" class="item">🧠 Kafka 3 — Avanzado</a>
-</div>
-
-
-<!-- Testing -->
-<h2>⬛ Testing & Herramientas</h2>
-<div class="grid">
-  <a href="testing.html" class="item">🧪 Testing</a>
-  <a href="git.html" class="item">🔧 Git</a>
-  <a href="maven.html" class="item">📦 Maven</a>
-  <a href="io.html" class="item">📂 Entrada/Salida (I/O)</a>
-</div>
-
-
-<!-- Scrum -->
-<h2>🟫 Metodologías</h2>
-<div class="grid">
-  <a href="scrum.html" class="item">🌀 Scrum</a>
-</div>
-
+            if (error) {
+                console.error("Error detallado:", error);
+                alert("❌ Error al conectar con la base de datos: " + error.message);
+            } else {
+                alert("✅ Registro exitoso para " + nombre + ".\nIniciando examen de " + nombreExamen);
+                // Aquí podrías añadir una línea para abrir el examen real:
+                // window.location.href = nombreExamen.toLowerCase() + ".html";
+            }
+        }
+    </script>
 </body>
 </html>
