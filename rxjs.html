@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · RxJS</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc;
           --panel:rgba(30,41,59,0.85); }
@@ -47,7 +49,7 @@
   .btn{
     display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px; font-weight:bold; color:white;
-    cursor:pointer; transition:.2s;
+    cursor:pointer; transition:.2s; border:none; text-decoration:none;
   }
   .btn:hover{ background:#38bdf8; }
 </style>
@@ -72,72 +74,44 @@
     <h2>🎉 ¡Has terminado!</h2>
     <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
     <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
+    <div id="btn-container"></div>
   </div>
 
 </div>
 
 <script>
-// ==============================
-//            PREGUNTAS RxJS
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta:{ title:"RxJS" },
+  meta:{ title:"rxjs" }, // ID para Supabase
   items:[
-    { q:"RxJS es…",
-      o:["Una librería de gráficos","Una librería para programación reactiva con Observables","Un motor de plantillas HTML","Un parseador XML"], a:1 },
-
-    { q:"Un Observable es…",
-      o:["Una promesa que nunca falla","Una colección asíncrona de valores en el tiempo","Una función pura","Un bucle infinito"], a:1 },
-
-    { q:"¿Qué hace un Observer?",
-      o:["Consume valores emitidos por un Observable","Crea Observables","Convierte JSON en XML","Renderiza HTML"], a:0 },
-
-    { q:"¿Qué operador se usa para transformar valores?",
-      o:["filter","subscribe","transform","console.log"], a:0 },
-
-    { q:"¿Qué operador aplica una función a cada valor emitido?",
-      o:["map","reduce","scan","tap"], a:0 },
-
-    { q:"¿Qué hace 'filter'?",
-      o:["Transforma valores","Filtra valores según una condición","Combina Observables","Gestiona errores"], a:1 },
-
-    { q:"¿Qué es un Subject?",
-      o:["Un Observable + Observer a la vez","Un tipo de Promise","Una API HTTP","Un motor de plantillas"], a:0 },
-
-    { q:"¿Qué diferencia hay entre *cold* y *hot* observables?",
-      o:["No existe diferencia","Cold produce valores por suscriptor; Hot comparte la misma fuente","Cold comparte valores; Hot crea uno por suscriptor","Cold es síncrono y Hot asíncrono"], a:1 },
-
-    { q:"¿Para qué sirve 'pipe'?",
-      o:["Para concatenar operadores en cadena","Para ejecutar SQL","Para parar emisiones","Para crear Observables HTTP"], a:0 },
-
-    { q:"¿Qué operador combina varios Observables emitiendo cuando TODOS emiten?",
-      o:["merge","concat","combineLatest","forkJoin"], a:3 },
-
-    { q:"¿Qué operador captura errores sin romper el stream?",
-      o:["retry","catchError","safe","block"], a:1 },
-
-    { q:"¿Qué operador crea un Observable a partir de un array?",
-      o:["from","toObservable","arrayToObs","make"], a:0 }
+    { q:"RxJS es…", o:["Una librería de gráficos","Una librería para programación reactiva con Observables","Un motor de plantillas HTML","Un parseador XML"], a:1 },
+    { q:"Un Observable es…", o:["Una promesa que nunca falla","Una colección asíncrona de valores en el tiempo","Una función pura","Un bucle infinito"], a:1 },
+    { q:"¿Qué hace un Observer?", o:["Consume valores emitidos por un Observable","Crea Observables","Convierte JSON en XML","Renderiza HTML"], a:0 },
+    { q:"¿Qué operador se usa para transformar valores?", o:["filter","subscribe","transform","map"], a:3 }, // Corregido el despiste del original
+    { q:"¿Qué operador aplica una función a cada valor emitido?", o:["map","reduce","scan","tap"], a:0 },
+    { q:"¿Qué hace 'filter'?", o:["Transforma valores","Filtra valores según una condición","Combina Observables","Gestiona errores"], a:1 },
+    { q:"¿Qué es un Subject?", o:["Un Observable + Observer a la vez","Un tipo de Promise","Una API HTTP","Un motor de plantillas"], a:0 },
+    { q:"¿Qué diferencia hay entre *cold* y *hot* observables?", o:["No existe diferencia","Cold produce valores por suscriptor; Hot comparte la misma fuente","Cold comparte valores; Hot crea uno por suscriptor","Cold es síncrono y Hot asíncrono"], a:1 },
+    { q:"¿Para qué sirve 'pipe'?", o:["Para concatenar operadores en cadena","Para ejecutar SQL","Para parar emisiones","Para crear Observables HTTP"], a:0 },
+    { q:"¿Qué operador combina varios Observables emitiendo cuando TODOS terminan?", o:["merge","concat","combineLatest","forkJoin"], a:3 },
+    { q:"¿Qué operador captura errores sin romper el stream?", o:["retry","catchError","safe","block"], a:1 },
+    { q:"¿Qué operador crea un Observable a partir de un array?", o:["from","toObservable","arrayToObs","make"], a:0 }
   ]
 };
 
-// ==============================
-//             MOTOR QUIZ
-// ==============================
 let i=0, points=0, hits=0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta "+(i+1)+" / "+QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta "+(i+1)+" / "+QUIZ.items.length;
   document.getElementById("points").textContent=points;
-
   const q=QUIZ.items[i];
   document.getElementById("qtext").textContent=q.q;
-
   const box=document.getElementById("options");
   box.innerHTML="";
-
   q.o.forEach((txt,idx)=>{
     const btn=document.createElement("button");
     btn.className="opt";
@@ -154,50 +128,33 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//              FINAL
-// ==============================
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display="none";
   const res=document.getElementById("result");
   res.style.display="block";
-
   document.getElementById("r_points").textContent=points;
   document.getElementById("r_hits").textContent=hits;
   document.getElementById("r_total").textContent=QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'rxjs' });
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  // BOTÓN INFALIBLE (creado por JS)
+  const btnBox = document.getElementById("btn-container");
   const volver=document.createElement("button");
   volver.className="btn";
   volver.textContent="⬅️ Volver al inicio";
   volver.onclick=()=>{ location.href="index.html"; };
-  res.appendChild(volver);
+  btnBox.appendChild(volver);
 }
 
-// ==============================
-//   ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-  let alumno=prompt("Introduce tu nombre para enviar los resultados:");
-
-  const formUrl=
-"https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data=new FormData();
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl,{method:"POST",mode:"no-cors",body:data});
-}
-
-// start
 mostrar();
 </script>
-
 </body>
 </html>
