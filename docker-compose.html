@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Docker Compose</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
   body {
@@ -74,66 +76,46 @@
   <h2>🎉 ¡Has terminado!</h2>
   <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
   <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-  <!-- OJO: aquí no pegamos ningún botón; lo crea el script -->
+  <div id="btn-container"></div>
 </div>
 
 </div>
 
 <script>
-// ==============================
-//      PREGUNTAS DOCKER-COMPOSE
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"Docker Compose" },
+  meta: { title:"dockercompose" }, // Identificador para el match
   items: [
-    { q:"¿Qué archivo utiliza Docker Compose para definir servicios?",
-      o:["Dockerfile","docker-compose.txt","docker-compose.yml","services.config"], a:2 },
-    { q:"¿Qué ventaja ofrece Docker Compose?",
-      o:["Definir varios servicios en un solo archivo","Aumentar la velocidad","Reducir imágenes","Eliminar Dockerfile"], a:0 },
-    { q:"¿Qué componente permite comunicación entre contenedores?",
-      o:["Dockerfile","Red (network)","Registro","Docker logs"], a:1 },
-    { q:"¿Qué extensión debe tener el archivo de configuración?",
-      o:[".json",".yml",".conf",".xml"], a:1 },
-    { q:"¿Qué hace 'docker-compose up'?",
-      o:["Solo construye imágenes","Elimina contenedores","Inicia todos los servicios","Inicia solo BD"], a:2 },
-    { q:"¿Qué archivo define la construcción de imágenes?",
-      o:["Dockerfile","docker-compose.yml","config.json","setup.sh"], a:0 },
-    { q:"Objetivo de los volúmenes",
-      o:["Ejecutar contenedores","Persistir datos","Eliminar temporales","Crear redes"], a:1 },
-    { q:"¿Qué servicio puede definirse en docker-compose.yml?",
-      o:["Cron","Web + BD","Solo volúmenes","Solo imagen"], a:1 },
-    { q:"¿Comando para reiniciar?",
-      o:["docker start","docker stop","docker restart","docker exec"], a:2 },
-    { q:"¿Qué asegura persistencia?",
-      o:["Red","Volumen","Puerto","Shell"], a:1 },
-    { q:"¿Qué permite 'docker exec -it'?",
-      o:["Detener contenedor","Entrar shell","Subir imagen","Construir"], a:1 },
-    { q:"Ventaja de Compose",
-      o:["Automatizar multi‑servicio","Reducir tamaño","Eliminar imágenes","Seguridad"], a:0 },
-    { q:"¿Qué hace 'docker image rm'?",
-      o:["Ejecutar imagen","Eliminar imagen","Mostrar procesos","Subir imágenes"], a:1 },
-    { q:"Herramienta que define dependencias entre servicios",
-      o:["Docker CLI","Docker Compose","Dockerfile","Volúmenes"], a:1 }
+    { q:"¿Qué archivo utiliza Docker Compose para definir servicios?", o:["Dockerfile","docker-compose.txt","docker-compose.yml","services.config"], a:2 },
+    { q:"¿Qué ventaja ofrece Docker Compose?", o:["Definir varios servicios en un solo archivo","Aumentar la velocidad","Reducir imágenes","Eliminar Dockerfile"], a:0 },
+    { q:"¿Qué componente permite comunicación entre contenedores?", o:["Dockerfile","Red (network)","Registro","Docker logs"], a:1 },
+    { q:"¿Qué extensión debe tener el archivo de configuración?", o:[".json",".yml",".conf",".xml"], a:1 },
+    { q:"¿Qué hace 'docker-compose up'?", o:["Solo construye imágenes","Elimina contenedores","Inicia todos los servicios","Inicia solo BD"], a:2 },
+    { q:"¿Qué archivo define la construcción de imágenes?", o:["Dockerfile","docker-compose.yml","config.json","setup.sh"], a:0 },
+    { q:"Objetivo de los volúmenes", o:["Ejecutar contenedores","Persistir datos","Eliminar temporales","Crear redes"], a:1 },
+    { q:"¿Qué servicio puede definirse en docker-compose.yml?", o:["Cron","Web + BD","Solo volúmenes","Solo imagen"], a:1 },
+    { q:"¿Comando para reiniciar?", o:["docker start","docker stop","docker restart","docker exec"], a:2 },
+    { q:"¿Qué asegura persistencia?", o:["Red","Volumen","Puerto","Shell"], a:1 },
+    { q:"¿Qué permite 'docker exec -it'?", o:["Detener contenedor","Entrar shell","Subir imagen","Construir"], a:1 },
+    { q:"Ventaja de Compose", o:["Automatizar multi‑servicio","Reducir tamaño","Eliminar imágenes","Seguridad"], a:0 },
+    { q:"¿Qué hace 'docker image rm'?", o:["Ejecutar imagen","Eliminar imagen","Mostrar procesos","Subir imágenes"], a:1 },
+    { q:"Herramienta que define dependencias entre servicios", o:["Docker CLI","Docker Compose","Dockerfile","Volúmenes"], a:1 }
   ]
 };
 
-// ==============================
-//            MOTOR
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q = QUIZ.items[i];
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
-
   q.o.forEach((txt, idx)=>{
     const b = document.createElement("button");
     b.className = "opt";
@@ -150,50 +132,35 @@ function responder(idx){
   mostrar();
 }
 
-function final(){
-  // Mostrar resultados
+async function final(){
   document.getElementById("quiz-card").style.display = "none";
   const res = document.getElementById("result");
   res.style.display = "block";
-
   document.getElementById("r_points").textContent = points;
-  document.getElementById("r_hits").textContent   = hits;
-  document.getElementById("r_total").textContent  = QUIZ.items.length;
+  document.getElementById("r_hits").textContent = hits;
+  document.getElementById("r_total").textContent = QUIZ.items.length;
 
-  // (1) Enviar resultados al Forms
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'dockercompose' });
 
-  // (2) Crear botón "Volver al inicio" por JS (INFALIBLE)
+      if (error) console.error("Error al actualizar nota:", error);
+  }
+
+  const btnContainer = document.getElementById("btn-container");
   const back = document.createElement("button");
   back.className = "btn";
   back.textContent = "⬅️ Volver al inicio";
   back.onclick = () => { location.href = "index.html"; };
-  res.appendChild(back);
+  btnContainer.appendChild(back);
 }
 
-// ==============================
-//   ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
-
-  const formUrl =
-    "https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data = new FormData();
-  // IDs internos de tu Form (ya validados contigo)
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);         // Nombre
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title); // Cuestionario
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);            // Aciertos
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);          // Puntos
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString()); // FechaHora
-
-  fetch(formUrl, { method:"POST", mode:"no-cors", body:data });
-}
-
-// Arranque
 mostrar();
 </script>
-
 </body>
 </html>
