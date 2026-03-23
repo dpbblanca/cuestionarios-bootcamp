@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consola de Cuestionarios - Completa</title>
+    <title>Consola de Cuestionarios - Bootcamp</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         :root { --bg1:#0f172a; --bg2:#1e293b; --primary:#7dd3fc; --muted:#94a3b8; }
         body { background: linear-gradient(135deg, var(--bg1), var(--bg2)); font-family: 'Segoe UI', sans-serif; color: white; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 800px; width: 100%; }
-        h1 { color: var(--primary); text-align: center; font-size: 32px; }
+        h1 { color: var(--primary); text-align: center; font-size: 32px; margin-bottom: 5px; }
         .login-box { background: rgba(30, 41, 59, 0.8); padding: 20px; border-radius: 15px; border: 1px solid var(--primary); margin-bottom: 30px; text-align: center; }
-        input { width: 80%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; font-size: 16px; }
-        h2 { color: var(--primary); border-left: 5px solid var(--primary); padding-left: 15px; margin-top: 30px; font-size: 20px; text-transform: uppercase; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
-        .item { display: flex; align-items: center; padding: 14px; background: #1e293b; border-radius: 10px; color: white; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; cursor: pointer; font-size: 16px; }
+        input { width: 80%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; font-size: 16px; color: #1e293b; font-weight: bold; }
+        h2 { color: var(--primary); border-left: 5px solid var(--primary); padding-left: 15px; margin-top: 30px; font-size: 18px; text-transform: uppercase; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+        .item { display: flex; align-items: center; padding: 14px; background: #1e293b; border-radius: 10px; color: white; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; cursor: pointer; font-size: 15px; }
         .item:hover { background: #334155; transform: translateY(-3px); border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .icon { margin-right: 12px; font-size: 20px; }
     </style>
@@ -26,62 +28,65 @@
     
     <div class="login-box">
         <label>👤 Nombre del Alumno:</label><br>
-        <input type="text" id="nombreAlumno" placeholder="Escribe tu nombre aquí...">
+        <input type="text" id="nombreAlumno" placeholder="Escribe tu nombre para empezar...">
     </div>
 
     <h2>🟦 Observabilidad & DevOps</h2>
     <div class="grid">
-        <div class="item" onclick="registrar('Grafana')"><span class="icon">📊</span> Grafana</div>
-        <div class="item" onclick="registrar('Elastic ELK')"><span class="icon">🔎</span> Elastic (ELK)</div>
-        <div class="item" onclick="registrar('Docker')"><span class="icon">🐳</span> Docker</div>
-        <div class="item" onclick="registrar('Docker Compose')"><span class="icon">📦</span> Docker Compose</div>
+        <div class="item" onclick="registrar('grafana')"><span class="icon">📊</span> Grafana</div>
+        <div class="item" onclick="registrar('elastic')"><span class="icon">🔎</span> Elastic (ELK)</div>
+        <div class="item" onclick="registrar('docker')"><span class="icon">🐳</span> Docker</div>
+        <div class="item" onclick="registrar('docker-compose')"><span class="icon">📦</span> Docker Compose</div>
+        <div class="item" onclick="registrar('Maven')"><span class="icon">🛠️</span> Maven</div>
     </div>
 
-    <h2>🟨 Bases de Datos & SQL</h2>
+    <h2>🟨 Desarrollo Frontend & Tools</h2>
     <div class="grid">
-        <div class="item" onclick="registrar('SQL 1')"><span class="icon">📝</span> SQL 1</div>
-        <div class="item" onclick="registrar('SQL 2')"><span class="icon">📘</span> SQL 2</div>
-        <div class="item" onclick="registrar('Normalización')"><span class="icon">📐</span> Normalización</div>
+        <div class="item" onclick="registrar('Git')"><span class="icon">🐙</span> Git</div>
+        <div class="item" onclick="registrar('angular')"><span class="icon">🅰️</span> Angular</div>
+        <div class="item" onclick="registrar('flex-grid')"><span class="icon">📏</span> Flex & Grid</div>
+        <div class="item" onclick="registrar('frontend')"><span class="icon">💻</span> Frontend General</div>
     </div>
 
-    <h2>🟩 Backend (Java & Spring)</h2>
+    <h2>🟩 Arquitectura & Backend</h2>
     <div class="grid">
-        <div class="item" onclick="registrar('Java Core')"><span class="icon">☕</span> Java Core</div>
-        <div class="item" onclick="registrar('Spring Framework')"><span class="icon">🌱</span> Spring Framework</div>
-        <div class="item" onclick="registrar('Spring Boot')"><span class="icon">🚀</span> Spring Boot</div>
-        <div class="item" onclick="registrar('Webservices / API')"><span class="icon">🔗</span> Webservices</div>
+        <div class="item" onclick="registrar('architecture')"><span class="icon">🏛️</span> Architecture</div>
+        <div class="item" onclick="registrar('Patrones')"><span class="icon">🧩</span> Patrones</div>
+        <div class="item" onclick="registrar('cliente-servidor')"><span class="icon">🖥️</span> Cliente-Servidor</div>
+        <div class="item" onclick="registrar('Webservices')"><span class="icon">🔗</span> Webservices</div>
+        <div class="item" onclick="registrar('persistencia')"><span class="icon">💾</span> Persistencia</div>
     </div>
 
-    <h2>🟥 Mensajería & Big Data</h2>
+    <h2>🟥 Datos & Mensajería</h2>
     <div class="grid">
-        <div class="item" onclick="registrar('Kafka 1')"><span class="icon">🧩</span> Kafka 1</div>
-        <div class="item" onclick="registrar('Kafka 2')"><span class="icon">⚙️</span> Kafka 2</div>
-    </div>
-
-    <h2>🟫 Metodologías & Otros</h2>
-    <div class="grid">
-        <div class="item" onclick="registrar('Scrum')"><span class="icon">🌀</span> Scrum</div>
-        <div class="item" onclick="registrar('Git / GitHub')"><span class="icon">🐙</span> Git & GitHub</div>
+        <div class="item" onclick="registrar('normalizacion')"><span class="icon">📐</span> Normalización</div>
+        <div class="item" onclick="registrar('kafka1')"><span class="icon">📨</span> Kafka 1</div>
+        <div class="item" onclick="registrar('kafka2')"><span class="icon">⚙️</span> Kafka 2</div>
+        <div class="item" onclick="registrar('kafka3')"><span class="icon">🚀</span> Kafka 3</div>
+        <div class="item" onclick="registrar('io')"><span class="icon">📤</span> I/O System</div>
     </div>
 </div>
 
 <script>
+    // Configuración de conexión
     const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function registrar(examen) {
+    async function registrar(archivoExamen) {
         const nombre = document.getElementById('nombreAlumno').value.trim();
-        if (!nombre) { alert("⚠️ Escribe tu nombre"); return; }
+        if (!nombre) { alert("⚠️ Escribe tu nombre antes de elegir un tema"); return; }
 
+        // 1. Guardamos el intento en la tabla 'resultados'
         const { error } = await _supabase
             .from('resultados')
-            .insert([{ alumno: nombre, examen: examen, nota: 0 }]);
+            .insert([{ alumno: nombre, examen: archivoExamen, nota: 0 }]);
 
         if (error) {
             alert("❌ ERROR: " + error.message);
         } else {
-            alert("✅ ¡Registrado! Suerte con " + examen);
+            // 2. Redirigimos al archivo .html correspondiente
+            window.location.href = archivoExamen + ".html";
         }
     }
 </script>
