@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Kafka 3 (Avanzado)</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
   body {
@@ -48,7 +50,7 @@
   .btn {
     display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px; font-weight:bold; color:white;
-    cursor:pointer; transition:.2s;
+    cursor:pointer; transition:.2s; border:none; text-decoration:none;
   }
   .btn:hover { background:#38bdf8; }
 </style>
@@ -74,70 +76,42 @@
     <h2>🎉 ¡Has terminado!</h2>
     <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
     <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-    <!-- Botón lo añade JS -->
+    <div id="btn-container"></div>
   </div>
 
 </div>
 
 <script>
-// ==============================
-//       PREGUNTAS KAFKA 3
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"Kafka 3 (Avanzado)" },
+  meta: { title:"kafka3" }, // Identificador para la tabla de resultados
   items: [
-    { q:"¿Qué hace la política de retención 'compact' en lugar de 'delete'?",
-      o:["Borra todos los mensajes antiguos","Conserva al menos el último mensaje por clave","Desactiva replicación","Solo guarda mensajes fallidos"], a:1 },
-
-    { q:"¿Qué tipo de topics usan compaction típicamente?",
-      o:["Logs transaccionales","Logs de auditoría","Tablas/estados tipo key‑value","Datos multimedia"], a:2 },
-
-    { q:"¿Qué herramienta gestiona formatos y compatibilidad de esquemas?",
-      o:["Kafka Connect","Schema Registry","ZooKeeper","Kafka Streams"], a:1 },
-
-    { q:"Compatibilidad FORWARD permite…",
-      o:["Leer mensajes antiguos con consumidores nuevos","Leer mensajes nuevos con consumidores antiguos","Eliminar compatibilidad","Evitar validación"], a:0 },
-
-    { q:"¿Qué asegura una transacción de Kafka?",
-      o:["Consumo batch por partición","Que un conjunto de mensajes se escriba como unidad atómica","Que solo un consumer procese mensajes","Rebalance automático"], a:1 },
-
-    { q:"Para EOS end‑to‑end se necesita:",
-      o:["Solo idempotent consumer","Idempotent producer + transacciones + isolation.level=read_committed","acks=0","Desactivar replicación"], a:1 },
-
-    { q:"Kafka Connect sirve para…",
-      o:["Monitorizar lag","Integrar Kafka con sistemas externos mediante conectores","Crear particiones manuales","Persistir offset local"], a:1 },
-
-    { q:"¿Qué es un sink connector?",
-      o:["Kafka → Sistema externo","Sistema externo → Kafka","Topic → Controller","Replica offsets"], a:0 },
-
-    { q:"¿Qué hace un source connector?",
-      o:["Kafka → BD","BD o sistema externo → Kafka","Solo exporta métricas","Modifica ISR"], a:1 },
-
-    { q:"Kafka Streams es…",
-      o:["Un motor de SQL","Un framework de procesamiento distribuido basado en librerías","Un reemplazo de ZooKeeper","Un formato de serialización"], a:1 },
-
-    { q:"State stores en Kafka Streams permiten…",
-      o:["Guardar estado local para joins, windows, agregaciones","Persistir offsets en disco","Eliminar configuración","Contener logs del SO"], a:0 },
-
-    { q:"¿Qué son las windowed operations?",
-      o:["Operaciones sobre todas las particiones","Operaciones temporales: tumbling, hopping, sliding windows","Solo filtros","Solo joins con key nula"], a:1 }
+    { q:"¿Qué hace la política de retención 'compact' en lugar de 'delete'?", o:["Borra todos los mensajes antiguos","Conserva al menos el último mensaje por clave","Desactiva replicación","Solo guarda mensajes fallidos"], a:1 },
+    { q:"¿Qué tipo de topics usan compaction típicamente?", o:["Logs transaccionales","Logs de auditoría","Tablas/estados tipo key‑value","Datos multimedia"], a:2 },
+    { q:"¿Qué herramienta gestiona formatos y compatibilidad de esquemas?", o:["Kafka Connect","Schema Registry","ZooKeeper","Kafka Streams"], a:1 },
+    { q:"Compatibilidad FORWARD permite…", o:["Leer mensajes antiguos con consumidores nuevos","Leer mensajes nuevos con consumidores antiguos","Eliminar compatibilidad","Evitar validación"], a:0 },
+    { q:"¿Qué asegura una transacción de Kafka?", o:["Consumo batch por partición","Que un conjunto de mensajes se escriba como unidad atómica","Que solo un consumer procese mensajes","Rebalance automático"], a:1 },
+    { q:"Para EOS end‑to‑end se necesita:", o:["Solo idempotent consumer","Idempotent producer + transacciones + isolation.level=read_committed","acks=0","Desactivar replicación"], a:1 },
+    { q:"Kafka Connect sirve para…", o:["Monitorizar lag","Integrar Kafka con sistemas externos mediante conectores","Crear particiones manuales","Persistir offset local"], a:1 },
+    { q:"¿Qué es un sink connector?", o:["Kafka → Sistema externo","Sistema externo → Kafka","Topic → Controller","Replica offsets"], a:0 },
+    { q:"¿Qué hace un source connector?", o:["Kafka → BD","BD o sistema externo → Kafka","Solo exporta métricas","Modifica ISR"], a:1 },
+    { q:"Kafka Streams es…", o:["Un motor de SQL","Un framework de procesamiento distribuido basado en librerías","Un reemplazo de ZooKeeper","Un formato de serialización"], a:1 },
+    { q:"State stores en Kafka Streams permiten…", o:["Guardar estado local para joins, windows, agregaciones","Persistir offsets en disco","Eliminar configuración","Contener logs del SO"], a:0 },
+    { q:"¿Qué son las windowed operations?", o:["Operaciones sobre todas las particiones","Operaciones temporales: tumbling, hopping, sliding windows","Solo filtros","Solo joins con key nula"], a:1 }
   ]
 };
 
-// ==============================
-//            MOTOR
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
   const q = QUIZ.items[i];
-
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
   q.o.forEach((txt, idx)=>{
@@ -156,51 +130,33 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//            FINAL
-// ==============================
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display="none";
   const res=document.getElementById("result");
   res.style.display="block";
-
   document.getElementById("r_points").textContent=points;
   document.getElementById("r_hits").textContent=hits;
   document.getElementById("r_total").textContent=QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'kafka3' });
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  // Botón infalible
+  const btnBox = document.getElementById("btn-container");
   const volver=document.createElement("button");
   volver.className="btn";
   volver.textContent="⬅️ Volver al inicio";
   volver.onclick=()=>{ location.href="index.html"; };
-  res.appendChild(volver);
+  btnBox.appendChild(volver);
 }
 
-// ==============================
-//   ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-
-  let alumno = prompt("Introduce tu nombre para enviar los resultados:");
-
-  const formUrl=
-    "https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data=new FormData();
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);             // Nombre
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);  // Cuestionario
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);             // Aciertos
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);           // Puntos
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString()); // FechaHora
-
-  fetch(formUrl,{method:"POST",mode:"no-cors",body:data});
-}
-
-// Start
 mostrar();
 </script>
-
 </body>
 </html>
