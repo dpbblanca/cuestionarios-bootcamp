@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Arquitectura de Software</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { 
     --bg1:#0f172a; --bg2:#1e293b;
@@ -48,10 +50,10 @@
   }
 
   .btn{
-    padding:12px 20px; background:#0284c7;
+    display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px;
     font-weight:bold; color:white; cursor:pointer;
-    transition:.2s; border:none;
+    transition:.2s; border:none; text-decoration: none;
   }
 
   .btn:hover{ background:#38bdf8; }
@@ -78,72 +80,44 @@
     <h2>🎉 ¡Has terminado!</h2>
     <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
     <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
+    <div id="btn-container"></div>
   </div>
 
 </div>
 
 <script>
-// ==============================
-//        PREGUNTAS ARQUITECTURA
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta:{ title:"Arquitectura de Software" },
+  meta:{ title:"arquitectura" }, // Coincide con lo enviado desde index.html
   items:[
-    { q:"¿Qué es un monolito?",
-      o:["Un programa distribuido","Toda la lógica en un único despliegue/aplicación","Un clúster de microservicios","Un contenedor Docker"], a:1 },
-
-    { q:"Los microservicios promueven…",
-      o:["Base de datos única centralizada","Despliegues independientes y escalabilidad por servicio","Un único repositorio con todo el código","Acoplamiento fuerte"], a:1 },
-
-    { q:"¿Qué suele representar una API REST?",
-      o:["Una interfaz binaria","Una interfaz HTTP de recursos con operaciones (GET/POST/PUT/DELETE)","Un driver del sistema","Una app móvil"], a:1 },
-
-    { q:"Arquitectura por capas clásica:",
-      o:["UI → Lógica → Persistencia","Persistencia → UI → Lógica","Router → Kernel → UI","Microservicio → ETL"], a:0 },
-
-    { q:"La arquitectura hexagonal enfatiza…",
-      o:["Uso de herencia","Dominio en el centro y adaptadores/periféricos conectados por puertos","Dependencias circulares","Un único repositorio"], a:1 },
-
-    { q:"DDD busca…",
-      o:["Modelar el dominio con lenguaje ubicuo","Evitar hablar con negocio","Organizar el código por controladores","Usar SQL puro siempre"], a:0 },
-
-    { q:"¿Qué principio SOLID sugiere depender de abstracciones?",
-      o:["LSP","DIP","SRP","ISP"], a:1 },
-
-    { q:"¿Qué es el patrón CQRS?",
-      o:["Separación de comandos/escrituras y consultas/lecturas","Compresión de queries","Sincronización entre microservicios","Modelo de acceso a ficheros"], a:0 },
-
-    { q:"Un evento de dominio es…",
-      o:["Un error en sistema","Una notificación de navegación","Algo que ocurrió en el dominio y que interesa comunicar","Un ping del servidor"], a:2 },
-
-    { q:"Un endpoint suele mapear…",
-      o:["Operaciones de usuario específicas","URLs que representan operaciones o recursos","Comandos de shell","Mensajes de red TCP"], a:1 },
-
-    { q:"Un anti‑pattern común:",
-      o:["Alta cohesión","Baja cohesión y alto acoplamiento","DDD bien aplicado","Separación clara entre infraestructura y dominio"], a:1 },
-
-    { q:"Una ventaja de microservicios:",
-      o:["Despliegues independientes","Código siempre más simple","Menos red","Nunca hay latencia"], a:0 }
+    { q:"¿Qué es un monolito?", o:["Un programa distribuido","Toda la lógica en un único despliegue/aplicación","Un clúster de microservicios","Un contenedor Docker"], a:1 },
+    { q:"Los microservicios promueven…", o:["Base de datos única centralizada","Despliegues independientes y escalabilidad por servicio","Un único repositorio con todo el código","Acoplamiento fuerte"], a:1 },
+    { q:"¿Qué suele representar una API REST?", o:["Una interfaz binaria","Una interfaz HTTP de recursos con operaciones (GET/POST/PUT/DELETE)","Un driver del sistema","Una app móvil"], a:1 },
+    { q:"Arquitectura por capas clásica:", o:["UI → Lógica → Persistencia","Persistencia → UI → Lógica","Router → Kernel → UI","Microservicio → ETL"], a:0 },
+    { q:"La arquitectura hexagonal enfatiza…", o:["Uso de herencia","Dominio en el centro y adaptadores/periféricos conectados por puertos","Dependencias circulares","Un único repositorio"], a:1 },
+    { q:"DDD busca…", o:["Modelar el dominio con lenguaje ubicuo","Evitar hablar con negocio","Organizar el código por controladores","Usar SQL puro siempre"], a:0 },
+    { q:"¿Qué principio SOLID sugiere depender de abstracciones?", o:["LSP","DIP","SRP","ISP"], a:1 },
+    { q:"¿Qué es el patrón CQRS?", o:["Separación de comandos/escrituras y consultas/lecturas","Compresión de queries","Sincronización entre microservicios","Modelo de acceso a ficheros"], a:0 },
+    { q:"Un evento de dominio es…", o:["Un error en sistema","Una notificación de navegación","Algo que ocurrió en el dominio y que interesa comunicar","Un ping del servidor"], a:2 },
+    { q:"Un endpoint suele mapear…", o:["Operaciones de usuario específicas","URLs que representan operaciones o recursos","Comandos de shell","Mensajes de red TCP"], a:1 },
+    { q:"Un anti‑pattern común:", o:["Alta cohesión","Baja cohesión y alto acoplamiento","DDD bien aplicado","Separación clara entre infraestructura y dominio"], a:1 },
+    { q:"Una ventaja de microservicios:", o:["Despliegues independientes","Código siempre más simple","Menos red","Nunca hay latencia"], a:0 }
   ]
 };
 
-// ==============================
-//            MOTOR
-// ==============================
 let i=0, points=0, hits=0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta "+(i+1)+" / "+QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta "+(i+1)+" / "+QUIZ.items.length;
   document.getElementById("points").textContent = points;
   const q=QUIZ.items[i];
-
   document.getElementById("qtext").textContent = q.q;
-
   const box=document.getElementById("options");
   box.innerHTML="";
-
   q.o.forEach((txt,idx)=>{
     const btn=document.createElement("button");
     btn.className="opt";
@@ -160,50 +134,35 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//              FINAL
-// ==============================
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display="none";
   const res=document.getElementById("result");
   res.style.display="block";
-
   document.getElementById("r_points").textContent=points;
   document.getElementById("r_hits").textContent=hits;
   document.getElementById("r_total").textContent=QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'arquitectura' });
 
-  // Botón infalible
+      if (error) console.error("Error al actualizar nota:", error);
+  }
+
+  const btnContainer = document.getElementById("btn-container");
   const volver=document.createElement("button");
   volver.className="btn";
   volver.textContent="⬅️ Volver al inicio";
   volver.onclick=()=>{ location.href="index.html"; };
-  res.appendChild(volver);
+  btnContainer.appendChild(volver);
 }
 
-// ==============================
-//  ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-  let alumno = prompt("Introduce tu nombre para enviar los resultados:");
-
-  const formUrl =
-"https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data=new FormData();
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl,{ method:"POST", mode:"no-cors", body:data });
-}
-
-// Iniciar
 mostrar();
 </script>
-
 </body>
 </html>
