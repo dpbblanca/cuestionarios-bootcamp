@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Panel del Profesor · Academy Java</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root { 
+    --bg:#0f172a; --card:#1e293b; --primary:#7dd3fc; 
+    --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8;
+  }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', sans-serif; margin: 0; padding: 40px;
+  }
+  .container { max-width: 1100px; margin: auto; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+  h1 { color: var(--primary); margin: 0; }
+  
+  .controls {
+    background: var(--card); padding: 20px; border-radius: 12px;
+    display: flex; gap: 15px; margin-bottom: 20px; align-items: center;
+  }
+  input, select {
+    padding: 10px; border-radius: 6px; border: 1px solid #334155;
+    background: #0f172a; color: white; flex: 1;
+  }
+
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
+  th { background: #334155; color: var(--primary); padding: 15px; text-align: left; font-size: 0.9rem; }
+  td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  tr:hover { background: rgba(125, 211, 252, 0.05); }
+
+  .badge {
+    padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; 
+    font-weight: bold; text-transform: uppercase; background: #0f172a; color: var(--accent);
+  }
+  .nota-alta { color: #4ade80; }
+  .nota-baja { color: #f87171; }
+  
+  .btn-refresh {
+    background: var(--accent); color: var(--bg); border: none; 
+    padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>👨‍🏫 Panel de Control del Profesor</h1>
+    <button class="btn-refresh" onclick="fetchData()">🔄 Refrescar Datos</button>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="searchAlumno" placeholder="Buscar por alumno..." oninput="filterTable()">
+    <select id="filterExamen" onchange="filterTable()">
+      <option value="">Todos los exámenes</option>
+      </select>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Alumno</th>
+        <th>Examen</th>
+        <th>Puntuación</th>
+        <th>Fecha y Hora</th>
+      </tr>
+    </thead>
+    <tbody id="results-body">
+      <tr><td colspan="4" style="text-align:center;">Cargando datos de Supabase...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allData = [];
+
+async function fetchData() {
+  const { data, error } = await _supabase
+    .from('resultados')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error("Error:", error);
+    return;
+  }
+
+  allData = data;
+  populateSelect(data);
+  renderTable(data);
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('results-body');
+  tbody.innerHTML = '';
+
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay resultados registrados.</td></tr>';
+    return;
+  }
+
+  data.forEach(row => {
+    const date = new Date(row.created_at).toLocaleString();
+    const notaClass = row.nota >= 700 ? 'nota-alta' : (row.nota < 500 ? 'nota-baja' : '');
+    
+    tbody.innerHTML += `
+      <tr>
+        <td><strong>${row.alumno}</strong></td>
+        <td><span class="badge">${row.examen}</span></td>
+        <td class="nota ${notaClass}">${row.nota} pts</td>
+        <td style="color:var(--muted)">${date}</td>
+      </tr>
+    `;
+  });
+}
+
+function populateSelect(data) {
+  const select = document.getElementById('filterExamen');
+  const examenes = [...new Set(data.map(item => item.examen))];
+  
+  // Guardar valor actual
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">Todos los exámenes</option>';
+  
+  examenes.forEach(ex => {
+    select.innerHTML += `<option value="${ex}">${ex.toUpperCase()}</option>`;
+  });
+  select.value = currentVal;
+}
+
+function filterTable() {
+  const nameQuery = document.getElementById('searchAlumno').value.toLowerCase();
+  const examQuery = document.getElementById('filterExamen').value;
+
+  const filtered = allData.filter(item => {
+    const matchesName = item.alumno.toLowerCase().includes(nameQuery);
+    const matchesExam = examQuery === "" || item.examen === examQuery;
+    return matchesName && matchesExam;
+  });
+
+  renderTable(filtered);
+}
+
+// Carga inicial
+fetchData();
+
+// Auto-refresco cada 60 segundos
+setInterval(fetchData, 60000);
+</script>
+
+</body>
+</html>
