@@ -2,129 +2,78 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - Academy Java</title>
+    <title>Panel Profesor</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg:#0f172a; --card:#1e293b; --primary:#7dd3fc; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; margin: 0; }
-        .container { max-width: 1100px; margin: auto; }
-        
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
-        h1 { color: var(--primary); margin: 0; font-size: 1.8rem; }
-        
-        .nav-btns { display: flex; gap: 10px; }
-        .btn { background: var(--accent); color: var(--bg); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 0.9rem; transition: 0.3s; }
-        .btn:hover { background: var(--primary); transform: translateY(-2px); }
-        .btn-secondary { background: #334155; color: white; }
-
-        .search-box { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #475569; background: var(--card); color: white; margin-bottom: 20px; font-size: 1rem; outline: none; }
-        .search-box:focus { border-color: var(--accent); }
-
-        .table-container { background: var(--card); border-radius: 12px; overflow-x: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th { background: #1e293b; color: var(--primary); padding: 15px; text-align: left; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #334155; }
-        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; }
-        tr:hover { background: rgba(255,255,255,0.03); }
-
-        .badge { background: rgba(56, 189, 248, 0.2); color: var(--accent); padding: 5px 10px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
-        .nota-alta { color: #4ade80; font-weight: bold; }
-        .nota-baja { color: #f87171; font-weight: bold; }
-
-        #status-msg { text-align: center; padding: 40px; color: var(--muted); font-style: italic; }
+        body { background: #0f172a; color: white; font-family: sans-serif; padding: 40px; }
+        .error-box { background: #450a0a; border: 1px solid #ef4444; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #334155; padding: 12px; text-align: left; }
+        th { background: #1e293b; color: #7dd3fc; }
+        .btn { background: #38bdf8; color: #0f172a; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>👨‍🏫 Panel del Profesor</h1>
-        <div class="nav-btns">
-            <a href="index.html" class="btn btn-secondary">← Volver al Inicio</a>
-            <button class="btn" onclick="fetchData()">🔄 Actualizar</button>
-        </div>
-    </header>
+    <h1>👨‍🏫 Panel del Profesor</h1>
+    <button class="btn" onclick="cargarDatos()">🔄 Forzar Carga de Datos</button>
+    
+    <div id="error-display" class="error-box"></div>
 
-    <input type="text" class="search-box" id="buscador" placeholder="🔍 Buscar por alumno o examen..." oninput="filtrar()">
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Alumno</th>
-                    <th>Cuestionario</th>
-                    <th>Puntuación</th>
-                </tr>
-            </thead>
-            <tbody id="tabla-cuerpo">
-                </tbody>
-        </table>
-        <div id="status-msg">Iniciando conexión con la base de datos...</div>
-    </div>
-</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Alumno</th>
+                <th>Examen</th>
+                <th>Puntos</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-cuerpo">
+            <tr><td colspan="3" id="estado">Cargando...</td></tr>
+        </tbody>
+    </table>
 
 <script>
-    // Configuración de Supabase con tus credenciales
     const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let datosMemoria = [];
-
-    async function fetchData() {
-        const msg = document.getElementById('status-msg');
+    async function cargarDatos() {
+        const errorDisplay = document.getElementById('error-display');
+        const estado = document.getElementById('estado');
         const tbody = document.getElementById('tabla-cuerpo');
-        msg.textContent = "⏳ Cargando datos de Supabase...";
-        msg.style.display = "block";
-        tbody.innerHTML = "";
 
         try {
-            // Consulta simple para evitar el error 400 de ordenamiento
-            const { data, error } = await _supabase
-                .from('resultados')
-                .select('*');
+            // CONSULTA MÁS SIMPLE POSIBLE
+            const { data, error } = await _supabase.from('resultados').select('*');
 
-            if (error) throw error;
-
-            datosMemoria = data;
-            
-            if (!data || data.length === 0) {
-                msg.textContent = "📭 No hay registros todavía.";
-            } else {
-                msg.style.display = "none";
-                render(data);
+            if (error) {
+                errorDisplay.style.display = "block";
+                errorDisplay.innerHTML = "<b>Error de Supabase:</b> " + error.message;
+                estado.textContent = "Error al cargar.";
+                return;
             }
-        } catch (err) {
-            console.error("Error completo:", err);
-            msg.innerHTML = `<span style="color:#f87171">❌ Error: ${err.message}</span><br><small>Asegúrate de que la tabla se llama 'resultados'</small>`;
+
+            if (data.length === 0) {
+                estado.textContent = "La tabla está conectada pero está VACÍA.";
+            } else {
+                tbody.innerHTML = data.map(i => `
+                    <tr>
+                        <td>${i.alumno || '---'}</td>
+                        <td>${i.examen || '---'}</td>
+                        <td>${i.nota || 0}</td>
+                    </tr>
+                `).join('');
+            }
+
+        } catch (e) {
+            errorDisplay.style.display = "block";
+            errorDisplay.textContent = "Error de conexión: " + e.message;
         }
     }
 
-    function render(lista) {
-        const tbody = document.getElementById('tabla-cuerpo');
-        tbody.innerHTML = lista.map(item => `
-            <tr>
-                <td><strong style="color:#fff">${item.alumno || 'Anónimo'}</strong></td>
-                <td><span class="badge">${(item.examen || 'Desconocido').toUpperCase()}</span></td>
-                <td class="${(item.nota || 0) >= 700 ? 'nota-alta' : 'nota-baja'}">
-                    ${item.nota || 0} pts
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function filtrar() {
-        const busqueda = document.getElementById('buscador').value.toLowerCase();
-        const filtrados = datosMemoria.filter(d => 
-            (d.alumno && d.alumno.toLowerCase().includes(busqueda)) || 
-            (d.examen && d.examen.toLowerCase().includes(busqueda))
-        );
-        render(filtrados);
-    }
-
-    // Ejecutar al cargar la página
-    window.onload = fetchData;
+    // Ejecutar nada más entrar
+    cargarDatos();
 </script>
-
 </body>
 </html>
