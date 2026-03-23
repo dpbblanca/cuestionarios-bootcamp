@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · POO por Componentes</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { 
     --bg1:#0f172a; --bg2:#1e293b;
@@ -53,7 +55,8 @@
     padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px;
     font-weight:bold; color:white;
-    cursor:pointer; transition:.2s; border:none;
+    cursor:pointer; transition:.2s; border:none; text-decoration: none;
+    display: inline-block;
   }
   .btn:hover{ background:#38bdf8; }
 </style>
@@ -80,72 +83,44 @@
   <h2>🎉 ¡Has terminado!</h2>
   <p style="font-size:20px;">Puntuación total: <b id="r_points"></b></p>
   <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
+  <div id="btn-container"></div>
 </div>
 
 </div>
 
 <script>
-// ==============================
-//     PREGUNTAS POO COMPONENTES
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta:{ title:"POO por Componentes" },
+  meta:{ title:"poo_componentes" }, // ID para Supabase
   items:[
-    { q:"Un componente en POO…",
-      o:["Es una clase aislada sin dependencias","Es una unidad reutilizable, encapsulada y con responsabilidad clara","Es cualquier archivo","Es solo una interfaz"], a:1 },
-
-    { q:"La cohesión se refiere a…",
-      o:["Cuánto se relacionan entre sí las responsabilidades de un componente","Número de dependencias externas","Velocidad de ejecución","Herencia múltiple"], a:0 },
-
-    { q:"El acoplamiento mide…",
-      o:["La independencia entre componentes","El tamaño del código","Los métodos privados","La complejidad ciclomática"], a:0 },
-
-    { q:"¿Qué buscamos en diseño por componentes?",
-      o:["Bajo acoplamiento y alta cohesión","Alto acoplamiento y baja cohesión","Código duplicado","Dependencias circulares"], a:0 },
-
-    { q:"La composición es…",
-      o:["Una forma de herencia","Construir funcionalidades combinando objetos internos","Un patrón Singleton","Mapeo BD"], a:1 },
-
-    { q:"Delegación significa…",
-      o:["Que una clase hereda métodos","Que una clase deriva responsabilidad a otra","Clonar objetos","Convertir clases en interfaces"], a:1 },
-
-    { q:"¿Qué principio dice que cada módulo debe tener una única responsabilidad?",
-      o:["OCP","SRP","DIP","LSP"], a:1 },
-
-    { q:"Un componente bien diseñado tiene…",
-      o:["Interface clara y dependencias controladas","Muchos métodos públicos","Variables globales","Dependencias ocultas"], a:0 },
-
-    { q:"¿Qué es una interfaz de componente?",
-      o:["Código interno","La forma en que otros interactúan con el componente","Un hook del sistema operativo","Una clase abstracta siempre"], a:1 },
-
-    { q:"La inversión de dependencias promueve…",
-      o:["Depender de implementaciones concretas","Dependencias de alto nivel hacia abstracciones","Ciclos en el grafo de dependencias","Dependencias unidireccionales siempre"], a:1 },
-
-    { q:"¿Qué es un *component graph* o grafo de componentes?",
-      o:["Un esquema de BD","Un mapa de cómo se relacionan componentes entre sí","Un test unitario","Un modelo de seguridad"], a:1 },
-
-    { q:"¿Qué ventaja tiene la composición sobre la herencia?",
-      o:["Reduce flexibilidad","Aumenta el acoplamiento","Evita jerarquías rígidas y favorece la reutilización","Debe usarse siempre en vez de herencia"], a:2 }
+    { q:"Un componente en POO…", o:["Es una clase aislada sin dependencias","Es una unidad reutilizable, encapsulada y con responsabilidad clara","Es cualquier archivo","Es solo una interfaz"], a:1 },
+    { q:"La cohesión se refiere a…", o:["Cuánto se relacionan entre sí las responsabilidades de un componente","Número de dependencias externas","Velocidad de ejecución","Herencia múltiple"], a:0 },
+    { q:"El acoplamiento mide…", o:["La independencia entre componentes","El tamaño del código","Los métodos privados","La complejidad ciclomática"], a:0 },
+    { q:"¿Qué buscamos en diseño por componentes?", o:["Bajo acoplamiento y alta cohesión","Alto acoplamiento y baja cohesión","Código duplicado","Dependencias circulares"], a:0 },
+    { q:"La composición es…", o:["Una forma de herencia","Construir funcionalidades combinando objetos internos","Un patrón Singleton","Mapeo BD"], a:1 },
+    { q:"Delegación significa…", o:["Que una clase hereda métodos","Que una clase deriva responsabilidad a otra","Clonar objetos","Convertir clases en interfaces"], a:1 },
+    { q:"¿Qué principio dice que cada módulo debe tener una única responsabilidad?", o:["OCP","SRP","DIP","LSP"], a:1 },
+    { q:"Un componente bien diseñado tiene…", o:["Interface clara y dependencias controladas","Muchos métodos públicos","Variables globales","Dependencias ocultas"], a:0 },
+    { q:"¿Qué es una interfaz de componente?", o:["Código interno","La forma en que otros interactúan con el componente","Un hook del sistema operativo","Una clase abstracta siempre"], a:1 },
+    { q:"La inversión de dependencias promueve…", o:["Depender de implementaciones concretas","Dependencias de alto nivel hacia abstracciones","Ciclos en el grafo de dependencias","Dependencias unidireccionales siempre"], a:1 },
+    { q:"¿Qué es un *component graph* o grafo de componentes?", o:["Un esquema de BD","Un mapa de cómo se relacionan componentes entre sí","Un test unitario","Un modelo de seguridad"], a:1 },
+    { q:"¿Qué ventaja tiene la composición sobre la herencia?", o:["Reduce flexibilidad","Aumenta el acoplamiento","Evita jerarquías rígidas y favorece la reutilización","Debe usarse siempre en vez de herencia"], a:2 }
   ]
 };
 
-// ==============================
-//             MOTOR QUIZ
-// ==============================
 let i=0, points=0, hits=0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta "+(i+1)+" / "+QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta "+(i+1)+" / "+QUIZ.items.length;
   document.getElementById("points").textContent=points;
-
   const q=QUIZ.items[i];
   document.getElementById("qtext").textContent=q.q;
-
   const box=document.getElementById("options");
   box.innerHTML="";
-
   q.o.forEach((txt,idx)=>{
     const btn=document.createElement("button");
     btn.className="opt";
@@ -162,51 +137,33 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//              FINAL
-// ==============================
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display="none";
   const res=document.getElementById("result");
   res.style.display="block";
-
   document.getElementById("r_points").textContent=points;
   document.getElementById("r_hits").textContent=hits;
   document.getElementById("r_total").textContent=QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'poo_componentes' });
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  // Botón regreso (INFALIBLE)
+  const btnBox = document.getElementById("btn-container");
   const volver=document.createElement("button");
   volver.className="btn";
   volver.textContent="⬅️ Volver al inicio";
   volver.onclick=()=>{ location.href="index.html"; };
-  res.appendChild(volver);
+  btnBox.appendChild(volver);
 }
 
-// ==============================
-//    ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-
-  let alumno=prompt("Introduce tu nombre para enviar los resultados:");
-
-  const formUrl=
-"https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data=new FormData();
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl,{method:"POST",mode:"no-cors",body:data});
-}
-
-// start
 mostrar();
 </script>
-
 </body>
 </html>
