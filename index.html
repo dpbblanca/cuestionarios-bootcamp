@@ -11,16 +11,20 @@
   header { text-align: center; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; }
   .btn-profesor { background: #0369a1; color: white; border: none; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.3s; }
   .btn-profesor:hover { background: var(--accent); }
+  
   .login-box { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 30px; display: flex; gap: 10px; justify-content: center; }
   input { padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; width: 250px; }
   .btn-login { padding: 12px 25px; background: var(--accent); color: var(--bg); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; width: 100%; }
-  .exam-card { background: var(--card); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; cursor: pointer; text-align: center; }
+  
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; width: 100%; }
+  .exam-card { background: var(--card); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; }
   .exam-card:hover { transform: translateY(-3px); border-color: var(--primary); background: #243147; }
-  .exam-card h3 { margin: 8px 0; color: var(--primary); font-size: 1rem; }
+  .exam-card h3 { margin: 8px 0 0 0; color: var(--primary); font-size: 0.95rem; }
   .icon { font-size: 1.5rem; }
+  
   .disabled { opacity: 0.3; cursor: not-allowed !important; pointer-events: none; filter: grayscale(1); }
-  #user-info { text-align: center; margin-bottom: 20px; display: none; }
+  #user-info { text-align: center; margin-bottom: 30px; display: none; }
+  #user-info h2 { font-size: 2rem; margin: 0; color: var(--text); }
 </style>
 </head>
 <body>
@@ -28,64 +32,21 @@
 <div class="container">
   <header>
     <div style="width:140px"></div>
-    <h1>🚀 Fullstack Bootcamp</h1>
+    <h1>🚀 Academy Java Fullstack</h1>
     <a href="profesor.html" class="btn-profesor">Panel Profesor</a>
   </header>
 
   <div class="login-box" id="login-section">
-    <input type="text" id="alumno-nombre" placeholder="Tu nombre...">
+    <input type="text" id="alumno-nombre" placeholder="Introduce tu nombre...">
     <button class="btn-login" onclick="login()">Acceder</button>
   </div>
 
   <div id="user-info">
     <h2 id="welcome-msg"></h2>
-    <small onclick="logout()" style="color:var(--accent); cursor:pointer; text-decoration:underline;">Cerrar sesión</small>
   </div>
 
   <div class="grid" id="exam-grid">
-    <script>
-      const cuestionarios = [
-        { n: 'Git', f: 'Git.html', i: '📦' },
-        { n: 'Maven', f: 'Maven.html', i: '🏗️' },
-        { n: 'Normalización', f: 'Normalizacion.html', i: '📐' },
-        { n: 'Patrones', f: 'Patrones.html', i: '🎨' },
-        { n: 'SQL 1', f: 'SQL1.html', i: '📁' },
-        { n: 'SQL 2', f: 'SQL2.html', i: '📊' },
-        { n: 'Webservices', f: 'Webservices.html', i: '🌐' },
-        { n: 'Angular', f: 'angular.html', i: '🅰️' },
-        { n: 'Architecture', f: 'architecture.html', i: '🏛️' },
-        { n: 'Cliente-Servidor', f: 'cliente-servidor.html', i: '💻' },
-        { n: 'Docker Compose', f: 'docker-compose.html', i: '🐙' },
-        { n: 'Docker', f: 'docker.html', i: '🐳' },
-        { n: 'Elastic', f: 'elastic.html', i: '🔍' },
-        { n: 'Flex-Grid', f: 'flex-grid.html', i: '🍱' },
-        { n: 'Frontend', f: 'frontend.html', i: '🎨' },
-        { n: 'Grafana', f: 'grafana.html', i: '📈' },
-        { n: 'I/O Java', f: 'io.html', i: '📂' },
-        { n: 'Kafka 1', f: 'kafka1.html', i: '📨' },
-        { n: 'Kafka 2', f: 'kafka2.html', i: '📡' },
-        { n: 'Kafka 3', f: 'kafka3.html', i: '⚙️' },
-        { n: 'Persistencia', f: 'persistencia.html', i: '💾' },
-        { n: 'POO Comp.', f: 'poo-componentes.html', i: '🧩' },
-        { n: 'POO', f: 'poo.html', i: '📦' },
-        { n: 'RxJS', f: 'rxjs.html', i: '⚡' },
-        { n: 'Scrum', f: 'scrum.html', i: '🏃' },
-        { n: 'Spring Boot', f: 'spring-boot.html', i: '🚀' },
-        { n: 'Spring', f: 'spring.html', i: '🍃' },
-        { n: 'Testing', f: 'testing.html', i: '🧪' }
-      ];
-
-      const grid = document.getElementById('exam-grid');
-      cuestionarios.forEach(c => {
-        grid.innerHTML += `
-          <div class="exam-card disabled" onclick="comenzar('${c.f}')">
-            <span class="icon">${c.i}</span>
-            <h3>${c.n}</h3>
-          </div>
-        `;
-      });
-    </script>
-  </div>
+    </div>
 </div>
 
 <script>
@@ -93,7 +54,50 @@ const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// LISTA COMPLETA BASADA EN TU REPOSITORIO
+const cuestionarios = [
+  { n: 'Git', f: 'Git.html', i: '📦' },
+  { n: 'Maven', f: 'Maven.html', i: '🏗️' },
+  { n: 'Normalización', f: 'Normalizacion.html', i: '📐' },
+  { n: 'Patrones', f: 'Patrones.html', i: '🎨' },
+  { n: 'SQL 1', f: 'SQL1.html', i: '📁' },
+  { n: 'SQL 2', f: 'SQL2.html', i: '📊' },
+  { n: 'Webservices', f: 'Webservices.html', i: '🌐' },
+  { n: 'Angular', f: 'angular.html', i: '🅰️' },
+  { n: 'Architecture', f: 'architecture.html', i: '🏛️' },
+  { n: 'Cliente-Servidor', f: 'cliente-servidor.html', i: '💻' },
+  { n: 'Docker Compose', f: 'docker-compose.html', i: '🐙' },
+  { n: 'Docker', f: 'docker.html', i: '🐳' },
+  { n: 'Elastic', f: 'elastic.html', i: '🔍' },
+  { n: 'Flex-Grid', f: 'flex-grid.html', i: '🍱' },
+  { n: 'Frontend', f: 'frontend.html', i: '🎨' },
+  { n: 'Grafana', f: 'grafana.html', i: '📈' },
+  { n: 'I/O Java', f: 'io.html', i: '📂' },
+  { n: 'Kafka 1', f: 'kafka1.html', i: '📨' },
+  { n: 'Kafka 2', f: 'kafka2.html', i: '📡' },
+  { n: 'Kafka 3', f: 'kafka3.html', i: '⚙️' },
+  { n: 'Persistencia', f: 'persistencia.html', i: '💾' },
+  { n: 'POO Comp.', f: 'poo-componentes.html', i: '🧩' },
+  { n: 'POO', f: 'poo.html', i: '📦' },
+  { n: 'RxJS', f: 'rxjs.html', i: '⚡' },
+  { n: 'Scrum', f: 'scrum.html', i: '🏃' },
+  { n: 'Spring Boot', f: 'spring-boot.html', i: '🚀' },
+  { n: 'Spring', f: 'spring.html', i: '🍃' },
+  { n: 'Testing', f: 'testing.html', i: '🧪' }
+];
+
+function renderGrid() {
+  const grid = document.getElementById('exam-grid');
+  grid.innerHTML = cuestionarios.map(c => `
+    <div class="exam-card disabled" onclick="comenzar('${c.f}')">
+      <span class="icon">${c.i}</span>
+      <h3>${c.n}</h3>
+    </div>
+  `).join('');
+}
+
 window.onload = () => {
+  renderGrid();
   const nombre = localStorage.getItem('alumnoActivo');
   if (nombre) habilitarAcceso(nombre);
 };
@@ -105,8 +109,6 @@ function login() {
   habilitarAcceso(nombre);
 }
 
-function logout() { localStorage.removeItem('alumnoActivo'); location.reload(); }
-
 function habilitarAcceso(nombre) {
   document.getElementById('login-section').style.display = 'none';
   document.getElementById('user-info').style.display = 'block';
@@ -117,6 +119,7 @@ function habilitarAcceso(nombre) {
 async function comenzar(archivo) {
   const alumno = localStorage.getItem('alumnoActivo');
   const idExamen = archivo.replace('.html', '');
+  // Registrar inicio con nota 0
   await _supabase.from('resultados').upsert({ alumno, examen: idExamen, nota: 0 }, { onConflict: 'alumno,examen' });
   location.href = archivo;
 }
