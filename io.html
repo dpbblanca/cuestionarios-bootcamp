@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Entrada/Salida (I/O)</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { 
     --bg1:#0f172a; --bg2:#1e293b;
@@ -52,7 +54,8 @@
     padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px;
     font-weight:bold; color:white; cursor:pointer;
-    transition:.2s; border:none;
+    transition:.2s; border:none; text-decoration:none;
+    display: inline-block;
   }
   .btn:hover{ background:#38bdf8; }
 </style>
@@ -78,72 +81,44 @@
     <h2>🎉 ¡Has terminado!</h2>
     <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
     <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
+    <div id="btn-container"></div>
   </div>
 
 </div>
 
 <script>
-// ==============================
-//        PREGUNTAS I/O
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta:{ title:"Entrada/Salida (I/O)" },
+  meta:{ title:"io" }, // ID para Supabase
   items:[
-    { q:"¿Qué es un stream?",
-      o:["Una tabla de BD","Un flujo secuencial de datos que se pueden leer o escribir","Una API web","Un tipo de variable"], a:1 },
-
-    { q:"¿Qué diferencia hay entre un fichero de texto y uno binario?",
-      o:["Texto usa codificación (UTF‑8), binario son bytes sin interpretar","Son iguales","Binario es solo imágenes","Texto solo admite ASCII"], a:0 },
-
-    { q:"¿Qué hace un buffer?",
-      o:["Almacena temporalmente datos para optimizar lectura/escritura","Elimina archivos","Comprueba permisos","Bloquea hilos"], a:0 },
-
-    { q:"¿Qué es un FileInputStream?",
-      o:["Un stream de salida","Un stream para leer bytes desde un fichero","Un parser XML","Un hilo del sistema"], a:1 },
-
-    { q:"¿Qué es un FileReader?",
-      o:["Lee caracteres (texto) aplicando codificación","Lee bytes sin interpretar","Escribe texto","Convierte JSON"], a:0 },
-
-    { q:"¿Qué hace FileWriter?",
-      o:["Escribe texto (caracteres) con codificación","Lee texto","Escribe bytes","Descarga archivos"], a:0 },
-
-    { q:"¿Qué ocurre si no cierras un stream?",
-      o:["Nada","Puede quedar archivo bloqueado y recursos sin liberar","Compila más rápido","No afecta al programa"], a:1 },
-
-    { q:"¿Qué es try‑with‑resources?",
-      o:["Un bucle","Un mecanismo de Java que cierra streams automáticamente","Una clase de hilos","Una herramienta de testing"], a:1 },
-
-    { q:"¿Qué ventaja tienen los buffers (BufferedReader/Writer)?",
-      o:["Son más lentos","Reducen accesos a disco, mejorando rendimiento","Solo funcionan en Linux","Obligan a usar ASCII"], a:1 },
-
-    { q:"¿Qué hace flush()?",
-      o:["Limpia memoria","Fuerza a escribir datos pendientes del buffer","Cierra archivo","Elimina contenido"], a:1 },
-
-    { q:"¿Qué es un Path en NIO?",
-      o:["Un objeto que representa una ruta de fichero/directorio","Un id de BD","Un thread","Un byte[]"], a:0 },
-
-    { q:"Ventaja de NIO2 frente a IO clásico:",
-      o:["Menos funcionalidades","Más errores","Más operaciones asíncronas y mejor gestión de rutas","Solo sirve para Windows"], a:2 }
+    { q:"¿Qué es un stream?", o:["Una tabla de BD","Un flujo secuencial de datos que se pueden leer o escribir","Una API web","Un tipo de variable"], a:1 },
+    { q:"¿Qué diferencia hay entre un fichero de texto y uno binario?", o:["Texto usa codificación (UTF‑8), binario son bytes sin interpretar","Son iguales","Binario es solo imágenes","Texto solo admite ASCII"], a:0 },
+    { q:"¿Qué hace un buffer?", o:["Almacena temporalmente datos para optimizar lectura/escritura","Elimina archivos","Comprueba permisos","Bloquea hilos"], a:0 },
+    { q:"¿Qué es un FileInputStream?", o:["Un stream de salida","Un stream para leer bytes desde un fichero","Un parser XML","Un hilo del sistema"], a:1 },
+    { q:"¿Qué es un FileReader?", o:["Lee caracteres (texto) aplicando codificación","Lee bytes sin interpretar","Escribe texto","Convierte JSON"], a:0 },
+    { q:"¿Qué hace FileWriter?", o:["Escribe texto (caracteres) con codificación","Lee texto","Escribe bytes","Descarga archivos"], a:0 },
+    { q:"¿Qué ocurre si no cierras un stream?", o:["Nada","Puede quedar archivo bloqueado y recursos sin liberar","Compila más rápido","No afecta al programa"], a:1 },
+    { q:"¿Qué es try‑with‑resources?", o:["Un bucle","Un mecanismo de Java que cierra streams automáticamente","Una clase de hilos","Una herramienta de testing"], a:1 },
+    { q:"¿Qué ventaja tienen los buffers (BufferedReader/Writer)?", o:["Son más lentos","Reducen accesos a disco, mejorando rendimiento","Solo funcionan en Linux","Obligan a usar ASCII"], a:1 },
+    { q:"¿Qué hace flush()?", o:["Limpia memoria","Fuerza a escribir datos pendientes del buffer","Cierra archivo","Elimina contenido"], a:1 },
+    { q:"¿Qué es un Path en NIO?", o:["Un objeto que representa una ruta de fichero/directorio","Un id de BD","Un thread","Un byte[]"], a:0 },
+    { q:"Ventaja de NIO2 frente a IO clásico:", o:["Menos funcionalidades","Más errores","Más operaciones asíncronas y mejor gestión de rutas","Solo sirve para Windows"], a:2 }
   ]
 };
 
-// ==============================
-//            MOTOR
-// ==============================
 let i=0, points=0, hits=0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta "+(i+1)+" / "+QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta "+(i+1)+" / "+QUIZ.items.length;
   document.getElementById("points").textContent=points;
   const q=QUIZ.items[i];
-
   document.getElementById("qtext").textContent=q.q;
-
   const box=document.getElementById("options");
   box.innerHTML="";
-
   q.o.forEach((txt,idx)=>{
     const btn=document.createElement("button");
     btn.className="opt";
@@ -160,51 +135,33 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//             FINAL
-// ==============================
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display="none";
   const res=document.getElementById("result");
   res.style.display="block";
-
   document.getElementById("r_points").textContent=points;
   document.getElementById("r_hits").textContent=hits;
   document.getElementById("r_total").textContent=QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'io' });
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  // Botón infalible creado por JS
+  const btnBox = document.getElementById("btn-container");
   const volver=document.createElement("button");
   volver.className="btn";
   volver.textContent="⬅️ Volver al inicio";
   volver.onclick=()=>{ location.href="index.html"; };
-  res.appendChild(volver);
+  btnBox.appendChild(volver);
 }
 
-// ==============================
-//   ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-
-  let alumno=prompt("Introduce tu nombre para enviar los resultados:");
-
-  const formUrl=
-"https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data=new FormData();
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl,{method:"POST",mode:"no-cors",body:data});
-}
-
-// Inicio
 mostrar();
 </script>
-
 </body>
 </html>
