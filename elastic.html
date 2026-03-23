@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Elastic (ELK)</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,.85); }
   body {
@@ -48,7 +50,7 @@
     display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px; font-weight:bold; color:white;
     text-decoration:none; transition:background .2s;
-    cursor:pointer;
+    cursor:pointer; border: none;
   }
   .btn:hover{ background:#38bdf8; }
 </style>
@@ -75,74 +77,44 @@
   <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
   <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
 
-  <!-- BOTÓN INFALIBLE -->
-  <button class="btn" onclick="location.href='index.html'">⬅️ Volver al inicio</button>
+  <div id="btn-container"></div>
 </div>
 
 </div>
 
 <script>
-// ==============================
-//       PREGUNTAS ELASTIC
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"Elastic (ELK)" },
+  meta: { title:"elastic" }, // Identificador para el match en Supabase
   items: [
-    { q:"¿Cuál de las siguientes tecnologías compone la pila ELK?",
-      o:["Kubernetes","Logstash","PostgreSQL","Nginx"], a:1 },
-
-    { q:"¿Cuál es el motor de búsqueda sobre el que se construye Elasticsearch?",
-      o:["Apache Lucene","Solr","Sphinx","OpenSearch"], a:0 },
-
-    { q:"¿Qué tipo de arquitectura utiliza Elasticsearch?",
-      o:["Cliente-servidor clásico","Monolítica","Distribuida","Orientada a eventos"], a:2 },
-
-    { q:"¿Qué componente de ELK se encarga de la visualización de datos?",
-      o:["Elasticsearch","Kibana","Grafana","Logstash"], a:1 },
-
-    { q:"¿Cuál es verdadera sobre Kibana?",
-      o:["No tiene interfaz gráfica","No funciona sin Grafana","Permite consultar datos de Elasticsearch","Está escrita en Java"], a:2 },
-
-    { q:"¿Cómo se accede normalmente a Elasticsearch?",
-      o:["SSH","SOAP","API REST","Solo mediante Kibana"], a:2 },
-
-    { q:"¿Qué lenguaje de consulta usa Elasticsearch?",
-      o:["Query DSL","SQL","GraphQL","Bash"], a:0 },
-
-    { q:"¿Qué hace Kibana con consultas KQL?",
-      o:["Las traduce a Bash","Las ejecuta directo en Lucene","Las convierte a Query DSL","Las ignora si no son JSON"], a:2 },
-
-    { q:"¿Cómo borrar un índice completo?",
-      o:["DELETE /document","REMOVE index","DELETE /nombre_del_indice","DROP INDEX nombre"], a:2 },
-
-    { q:"Formato de las consultas Query DSL:",
-      o:["XML","YAML","JSON","CSV"], a:2 },
-
-    { q:"¿Qué se puede hacer desde Kibana además de consultar datos?",
-      o:["Ejecutar Python","Monitorizar y asegurar el cluster Elastic","Compilar Elasticsearch","Generar PDF"], a:1 },
-
-    { q:"Función de la API REST de Elasticsearch:",
-      o:["Crear dashboards","Acceder a funciones de consulta y configuración","Procesar imágenes","Instalar plugins"], a:1 }
+    { q:"¿Cuál de las siguientes tecnologías compone la pila ELK?", o:["Kubernetes","Logstash","PostgreSQL","Nginx"], a:1 },
+    { q:"¿Cuál es el motor de búsqueda sobre el que se construye Elasticsearch?", o:["Apache Lucene","Solr","Sphinx","OpenSearch"], a:0 },
+    { q:"¿Qué tipo de arquitectura utiliza Elasticsearch?", o:["Cliente-servidor clásico","Monolítica","Distribuida","Orientada a eventos"], a:2 },
+    { q:"¿Qué componente de ELK se encarga de la visualización de datos?", o:["Elasticsearch","Kibana","Grafana","Logstash"], a:1 },
+    { q:"¿Cuál es verdadera sobre Kibana?", o:["No tiene interfaz gráfica","No funciona sin Grafana","Permite consultar datos de Elasticsearch","Está escrita en Java"], a:2 },
+    { q:"¿Cómo se accede normalmente a Elasticsearch?", o:["SSH","SOAP","API REST","Solo mediante Kibana"], a:2 },
+    { q:"¿Qué lenguaje de consulta usa Elasticsearch?", o:["Query DSL","SQL","GraphQL","Bash"], a:0 },
+    { q:"¿Qué hace Kibana con consultas KQL?", o:["Las traduce a Bash","Las ejecuta directo en Lucene","Las convierte a Query DSL","Las ignora si no son JSON"], a:2 },
+    { q:"¿Cómo borrar un índice completo?", o:["DELETE /document","REMOVE index","DELETE /nombre_del_indice","DROP INDEX nombre"], a:2 },
+    { q:"Formato de las consultas Query DSL:", o:["XML","YAML","JSON","CSV"], a:2 },
+    { q:"¿Qué se puede hacer desde Kibana además de consultar datos?", o:["Ejecutar Python","Monitorizar y asegurar el cluster Elastic","Compilar Elasticsearch","Generar PDF"], a:1 },
+    { q:"Función de la API REST de Elasticsearch:", o:["Crear dashboards","Acceder a funciones de consulta y configuración","Procesar imágenes","Instalar plugins"], a:1 }
   ]
 };
 
-// ==============================
-//       MOTOR
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q = QUIZ.items[i];
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
-
   q.o.forEach((txt, idx)=>{
     const b = document.createElement("button");
     b.className = "opt";
@@ -159,43 +131,35 @@ function responder(idx){
   mostrar();
 }
 
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display = "none";
   document.getElementById("result").style.display = "block";
-
   document.getElementById("r_points").textContent = points;
   document.getElementById("r_hits").textContent = hits;
   document.getElementById("r_total").textContent = QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
-}
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'elastic' });
 
-// ==============================
-//       ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
-
-  const formUrl = "https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data = new FormData();
-
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl, {
-    method: "POST",
-    mode: "no-cors",
-    body: data
-  });
+  // Crear botón volver por JS
+  const btnContainer = document.getElementById("btn-container");
+  const volver = document.createElement("button");
+  volver.className = "btn";
+  volver.textContent = "⬅️ Volver al inicio";
+  volver.onclick = () => { location.href = "index.html"; };
+  btnContainer.appendChild(volver);
 }
 
 mostrar();
 </script>
-
 </body>
 </html>
