@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Docker</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,.85); }
   body {
@@ -48,7 +50,7 @@
     display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px; font-weight:bold; color:white;
     text-decoration:none; transition:background .2s;
-    cursor:pointer;
+    cursor:pointer; border: none;
   }
   .btn:hover{ background:#38bdf8; }
 </style>
@@ -74,81 +76,46 @@
   <h2>🎉 ¡Has terminado!</h2>
   <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
   <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-
-  <!-- BOTÓN INFALIBLE -->
-  <button onclick="location.href='index.html'" class="btn">⬅️ Volver al inicio</button>
+  <div id="btn-container"></div>
 </div>
 
 </div>
 
 <script>
-// ==============================
-//       PREGUNTAS DOCKER
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"Docker" },
+  meta: { title:"docker" }, // Identificador para el match con index.html
   items: [
-    { q:"¿Cuál es una diferencia clave entre contenedores y máquinas virtuales?",
-      o:["Las VMs consumen menos recursos","Los contenedores comparten el kernel del host","Los contenedores necesitan hipervisor","Las VMs no ejecutan apps"], a:1 },
-
-    { q:"¿Qué comando construye una imagen desde un Dockerfile?",
-      o:["docker run","docker exec","docker build","docker pull"], a:2 },
-
-    { q:"¿Qué hace 'docker run'?",
-      o:["Compila imagen","Inicia contenedor","Elimina contenedor","Actualiza contenedor"], a:1 },
-
-    { q:"¿Qué comando ejecuta algo dentro de un contenedor?",
-      o:["docker start","docker exec","docker logs","docker ps"], a:1 },
-
-    { q:"¿Qué comando lista los contenedores?",
-      o:["docker logs","docker ps","docker start","docker build"], a:1 },
-
-    { q:"¿Qué archivo define la imagen personalizada?",
-      o:["docker-compose","Dockerfile","Volumen","Registro"], a:1 },
-
-    { q:"¿Para qué sirve 'docker volume'?",
-      o:["Imágenes","Datos persistentes","Crear contenedores","Ejecutar comandos"], a:1 },
-
-    { q:"¿Qué comando sube una imagen al registro remoto?",
-      o:["docker exec","docker install","docker fetch","docker push"], a:3 },
-
-    { q:"¿Qué hace 'docker pull'?",
-      o:["Inicia contenedor","Ejecuta comando","Descarga imagen","Construye imagen"], a:2 },
-
-    { q:"¿Qué comando muestra logs del contenedor?",
-      o:["docker volume","docker ps","docker logs","docker image"], a:2 },
-
-    { q:"¿Qué lista imágenes del sistema?",
-      o:["docker ps","docker images","docker logs","docker network"], a:1 },
-
-    { q:"¿Qué comando detiene un contenedor?",
-      o:["docker exec","docker stop","docker pull","docker ps"], a:1 },
-
-    { q:"¿Qué hace 'docker start'?",
-      o:["Inicia contenedor detenido","Elimina imagen","Construye imagen","Crea red"], a:0 },
-
-    { q:"¿Qué comando borra una imagen?",
-      o:["docker pull","docker rmi","docker stop","docker exec"], a:1 }
+    { q:"¿Cuál es una diferencia clave entre contenedores y máquinas virtuales?", o:["Las VMs consumen menos recursos","Los contenedores comparten el kernel del host","Los contenedores necesitan hipervisor","Las VMs no ejecutan apps"], a:1 },
+    { q:"¿Qué comando construye una imagen desde un Dockerfile?", o:["docker run","docker exec","docker build","docker pull"], a:2 },
+    { q:"¿Qué hace 'docker run'?", o:["Compila imagen","Inicia contenedor","Elimina contenedor","Actualiza contenedor"], a:1 },
+    { q:"¿Qué comando ejecuta algo dentro de un contenedor?", o:["docker start","docker exec","docker logs","docker ps"], a:1 },
+    { q:"¿Qué comando lista los contenedores?", o:["docker logs","docker ps","docker start","docker build"], a:1 },
+    { q:"¿Qué archivo define la imagen personalizada?", o:["docker-compose","Dockerfile","Volumen","Registro"], a:1 },
+    { q:"¿Para qué sirve 'docker volume'?", o:["Imágenes","Datos persistentes","Crear contenedores","Ejecutar comandos"], a:1 },
+    { q:"¿Qué comando sube una imagen al registro remoto?", o:["docker exec","docker install","docker fetch","docker push"], a:3 },
+    { q:"¿Qué hace 'docker pull'?", o:["Inicia contenedor","Ejecuta comando","Descarga imagen","Construye imagen"], a:2 },
+    { q:"¿Qué comando muestra logs del contenedor?", o:["docker volume","docker ps","docker logs","docker image"], a:2 },
+    { q:"¿Qué lista imágenes del sistema?", o:["docker ps","docker images","docker logs","docker network"], a:1 },
+    { q:"¿Qué comando detiene un contenedor?", o:["docker exec","docker stop","docker pull","docker ps"], a:1 },
+    { q:"¿Qué hace 'docker start'?", o:["Inicia contenedor detenido","Elimina imagen","Construye imagen","Crea red"], a:0 },
+    { q:"¿Qué comando borra una imagen?", o:["docker pull","docker rmi","docker stop","docker exec"], a:1 }
   ]
 };
 
-// ==============================
-//       MOTOR DEL QUIZ
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q = QUIZ.items[i];
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
-
   q.o.forEach((txt, idx)=>{
     const b = document.createElement("button");
     b.className = "opt";
@@ -165,43 +132,37 @@ function responder(idx){
   mostrar();
 }
 
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display = "none";
-  document.getElementById("result").style.display = "block";
+  const resDiv = document.getElementById("result");
+  resDiv.style.display = "block";
 
   document.getElementById("r_points").textContent = points;
   document.getElementById("r_hits").textContent = hits;
   document.getElementById("r_total").textContent = QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
-}
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'docker' });
 
-// ==============================
-//       ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
-
-  const formUrl = "https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data = new FormData();
-
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl, {
-    method: "POST",
-    mode: "no-cors",
-    body: data
-  });
+  // Botón volver
+  const btnContainer = document.getElementById("btn-container");
+  const volver = document.createElement("button");
+  volver.className = "btn";
+  volver.textContent = "⬅️ Volver al inicio";
+  volver.onclick = () => { location.href = "index.html"; };
+  btnContainer.appendChild(volver);
 }
 
 mostrar();
 </script>
-
 </body>
 </html>
