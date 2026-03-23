@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Git</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
   body {
@@ -46,7 +48,7 @@
   .btn {
     display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px; font-weight:bold; color:white;
-    cursor:pointer; transition:.2s;
+    cursor:pointer; transition:.2s; text-decoration: none;
   }
   .btn:hover { background:#38bdf8; }
 </style>
@@ -72,79 +74,45 @@
     <h2>🎉 ¡Has terminado!</h2>
     <p style="font-size:20px">Puntuación total: <b id="r_points"></b></p>
     <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-    <!-- El botón “Volver al inicio” se añade por JS (infalible) -->
+    <div id="btn-container"></div>
   </div>
 
 </div>
 
 <script>
-// ==============================
-//           PREGUNTAS GIT
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
   meta: { title:"Git" },
   items: [
-    { q:"¿Qué comando inicializa un repositorio Git en una carpeta?",
-      o:["git start",".git init","git init","git repository init"], a:2 },
-
-    { q:"¿Qué comando añade archivos al área de preparación (staging)?",
-      o:["git add","git stage add","git commit --add","git push --stage"], a:0 },
-
-    { q:"¿Qué comando crea un commit con los cambios del staging area?",
-      o:["git save","git commit","git push","git stash"], a:1 },
-
-    { q:"¿Qué hace 'git status'?",
-      o:["Muestra el historial de commits","Muestra estado de staging y archivos modificados","Compara dos ramas","Elimina archivos sin seguimiento"], a:1 },
-
-    { q:"¿Cómo creas y cambias a una rama nueva llamada 'feature'?",
-      o:["git branch feature && git checkout feature","git checkout -b feature","git switch -c feature","Cualquiera de las anteriores"], a:3 },
-
-    { q:"¿Qué comando fusiona la rama 'feature' en la rama actual?",
-      o:["git combine feature","git merge feature","git rebase feature","git attach feature"], a:1 },
-
-    { q:"¿Qué diferencia hay entre merge y rebase (en general)?",
-      o:["merge reescribe historia, rebase crea merge commits","merge integra con merge commit; rebase reescribe y aplica commits sobre otra base","no hay diferencia","rebase solo funciona en repos remotos"], a:1 },
-
-    { q:"¿Qué comando muestra el historial de commits?",
-      o:["git history","git log","git reflog","git show-all"], a:1 },
-
-    { q:"¿Qué hace 'git stash'?",
-      o:["Guarda cambios locales temporalmente y limpia el working directory","Elimina cambios locales permanentemente","Sube los cambios al remoto","Crea una etiqueta del estado actual"], a:0 },
-
-    { q:"¿Cómo conectas tu repo local a un remoto?",
-      o:["git remote add origin <URL>","git add remote <URL>","git origin set <URL>","git upstream add <URL>"], a:0 },
-
-    { q:"¿Qué comando sube cambios al remoto 'origin' en la rama actual?",
-      o:["git push origin HEAD","git upload","git send","git export"], a:0 },
-
-    { q:"¿Cómo traes y fusionas cambios del remoto en la rama actual?",
-      o:["git pull","git fetch","git clone","git import"], a:0 },
-
-    { q:"¿Cómo descargas referencias remotas sin fusionar automáticamente?",
-      o:["git pull","git fetch","git rebase","git sync"], a:1 },
-
-    { q:"¿Qué comando crea una etiqueta anotada 'v1.0'?",
-      o:["git tag v1.0","git tag -a v1.0 -m \"versión 1.0\"","git tag create v1.0","git label v1.0"], a:1 },
-
-    { q:"¿Qué archivo se usa para ignorar ficheros en el repo?",
-      o:[".gitconfig",".gitignore",".gitkeep",".gitcache"], a:1 }
+    { q:"¿Qué comando inicializa un repositorio Git en una carpeta?", o:["git start",".git init","git init","git repository init"], a:2 },
+    { q:"¿Qué comando añade archivos al área de preparación (staging)?", o:["git add","git stage add","git commit --add","git push --stage"], a:0 },
+    { q:"¿Qué comando crea un commit con los cambios del staging area?", o:["git save","git commit","git push","git stash"], a:1 },
+    { q:"¿Qué hace 'git status'?", o:["Muestra el historial de commits","Muestra estado de staging y archivos modificados","Compara dos ramas","Elimina archivos sin seguimiento"], a:1 },
+    { q:"¿Cómo creas y cambias a una rama nueva llamada 'feature'?", o:["git branch feature && git checkout feature","git checkout -b feature","git switch -c feature","Cualquiera de las anteriores"], a:3 },
+    { q:"¿Qué comando fusiona la rama 'feature' en la rama actual?", o:["git combine feature","git merge feature","git rebase feature","git attach feature"], a:1 },
+    { q:"¿Qué diferencia hay entre merge y rebase (en general)?", o:["merge reescribe historia, rebase crea merge commits","merge integra con merge commit; rebase reescribe y aplica commits sobre otra base","no hay diferencia","rebase solo funciona en repos remotos"], a:1 },
+    { q:"¿Qué comando muestra el historial de commits?", o:["git history","git log","git reflog","git show-all"], a:1 },
+    { q:"¿Qué hace 'git stash'?", o:["Guarda cambios locales temporalmente y limpia el working directory","Elimina cambios locales permanentemente","Sube los cambios al remoto","Crea una etiqueta del estado actual"], a:0 },
+    { q:"¿Cómo conectas tu repo local a un remoto?", o:["git remote add origin <URL>","git add remote <URL>","git origin set <URL>","git upstream add <URL>"], a:0 },
+    { q:"¿Qué comando sube cambios al remoto 'origin' en la rama actual?", o:["git push origin HEAD","git upload","git send","git export"], a:0 },
+    { q:"¿Cómo traes y fusionas cambios del remoto en la rama actual?", o:["git pull","git fetch","git clone","git import"], a:0 },
+    { q:"¿Cómo descargas referencias remotas sin fusionar automáticamente?", o:["git pull","git fetch","git rebase","git sync"], a:1 },
+    { q:"¿Qué comando crea una etiqueta anotada 'v1.0'?", o:["git tag v1.0","git tag -a v1.0 -m \"versión 1.0\"","git tag create v1.0","git label v1.0"], a:1 },
+    { q:"¿Qué archivo se usa para ignorar ficheros en el repo?", o:[".gitconfig",".gitignore",".gitkeep",".gitcache"], a:1 }
   ]
 };
 
-// ==============================
-//             MOTOR
-// ==============================
 let i = 0, points = 0, hits = 0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q = QUIZ.items[i];
   document.getElementById("qtext").textContent = q.q;
-
   const box = document.getElementById("options");
   box.innerHTML = "";
   q.o.forEach((txt, idx)=>{
@@ -163,52 +131,39 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//             FINAL
-// ==============================
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display = "none";
   const res = document.getElementById("result");
   res.style.display = "block";
-
   document.getElementById("r_points").textContent = points;
-  document.getElementById("r_hits").textContent   = hits;
-  document.getElementById("r_total").textContent  = QUIZ.items.length;
+  document.getElementById("r_hits").textContent = hits;
+  document.getElementById("r_total").textContent = QUIZ.items.length;
 
-  // Enviar resultados al Microsoft Forms
-  enviarResultadosMicrosoftForms();
+  // --- NUEVA LÓGICA DE ENVÍO AUTOMÁTICO ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  
+  if (nombreGuardado) {
+      // Actualizamos la nota en Supabase (buscando la fila que creamos en index.html)
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'Git' });
 
-  // Botón infalible creado por JS
+      if (error) {
+          console.error("Error al actualizar nota:", error);
+      }
+  }
+
+  // Botón para volver
+  const btnContainer = document.getElementById("btn-container");
   const volver = document.createElement("button");
   volver.className = "btn";
   volver.textContent = "⬅️ Volver al inicio";
   volver.onclick = ()=>{ location.href = "index.html"; };
-  res.appendChild(volver);
+  btnContainer.appendChild(volver);
 }
 
-// ==============================
-//   ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-  let alumno = prompt("Introduce tu nombre para enviar los resultados al profesor:");
-
-  const formUrl =
-    "https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data = new FormData();
-  // IDs de tu Form: Nombre | Cuestionario | Aciertos | Puntos | FechaHora
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title);
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl, { method:"POST", mode:"no-cors", body:data });
-}
-
-// Arranque
 mostrar();
 </script>
-
 </body>
 </html>
