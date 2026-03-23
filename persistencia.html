@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Cuestionario · Persistencia</title>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
   :root { --bg1:#0f172a; --bg2:#1e293b; --muted:#94a3b8; --primary:#7dd3fc; --panel:rgba(30,41,59,0.85); }
   body {
@@ -48,7 +50,7 @@
     display:inline-block; padding:12px 20px; background:#0284c7;
     border-radius:10px; margin-top:18px;
     font-weight:bold; color:white; cursor:pointer;
-    transition:.2s;
+    transition:.2s; border:none; text-decoration:none;
   }
   .btn:hover { background:#38bdf8; }
 </style>
@@ -73,73 +75,44 @@
     <h2>🎉 ¡Has terminado!</h2>
     <p style="font-size:20px;">Puntuación total: <b id="r_points"></b></p>
     <p>Aciertos: <b id="r_hits"></b> de <span id="r_total"></span></p>
-    <!-- El botón se añade por JS -->
+    <div id="btn-container"></div>
   </div>
 
 </div>
 
 <script>
-// ==============================
-//        PREGUNTAS PERSISTENCIA
-// ==============================
+// --- CONFIGURACIÓN SUPABASE ---
+const SUPABASE_URL = 'https://anmfsgtelpkqsuulkwhn.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_iRqF06RhsKFV1HJPiM8Nnw_MrHgbC9D';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const QUIZ = {
-  meta: { title:"Persistencia" },
+  meta: { title:"persistencia" }, // ID para el match en Supabase
   items: [
-    { q:"¿Qué es un ORM?",
-      o:["Una base de datos","Un mapeador objeto‑relacional que traduce clases ↔ tablas","Un tipo de servidor web","Un motor de plantillas"], a:1 },
-
-    { q:"¿Qué anotación marca una clase como entidad JPA?",
-      o:["@Repository","@Entity","@Model","@DataEntity"], a:1 },
-
-    { q:"¿Qué anotación identifica la clave primaria?",
-      o:["@Primary","@Id","@Key","@PK"], a:1 },
-
-    { q:"¿Qué relación corresponde a 'muchos‑a‑uno'?",
-      o:["@OneToMany","@ManyToOne","@OneToOne","@ManyToMany"], a:1 },
-
-    { q:"¿Qué es el contexto de persistencia?",
-      o:["Un archivo de configuración","El conjunto de entidades gestionadas en memoria por JPA","La base de datos física","La configuración de seguridad"], a:1 },
-
-    { q:"El estado 'managed' significa que…",
-      o:["La entidad está sincronizada con la BD y controlada por el EntityManager","La entidad está eliminada","Nunca ha sido persistida","Es un dato inmutable"], a:0 },
-
-    { q:"¿Cuál es la forma correcta de definir relación bidireccional OneToMany?",
-      o:["Solo @OneToMany sin mappedBy","@OneToMany + @ManyToOne con mappedBy en el lado 'uno'","@ManyToMany por defecto","@Entity sin relaciones"], a:1 },
-
-    { q:"¿Qué hace CascadeType.PERSIST?",
-      o:["Elimina entidades relacionadas","Propaga persist() a entidades dependientes","Cierra conexiones","Activa logs"], a:1 },
-
-    { q:"¿Qué hace FetchType.LAZY?",
-      o:["Carga todo inmediatamente","Solo carga relaciones cuando se necesitan","Desactiva cache","Exige usar SQL manual"], a:1 },
-
-    { q:"¿Qué ocurre si una entidad no tiene constructor vacío?",
-      o:["Nada, no es necesario","JPA podría fallar al instanciarla","Solo afecta a test","La ignora"], a:1 },
-
-    { q:"¿Qué interfaz de Spring Data se usa para CRUD básico?",
-      o:["JpaRepository","JdbcClient","CrudController","RepositoryBean"], a:0 },
-
-    { q:"¿Qué es una transacción?",
-      o:["Una operación lógica que debe completarse completamente o revertirse","Un commit parcial","Una consulta sin estado","Un log de eventos"], a:0 }
+    { q:"¿Qué es un ORM?", o:["Una base de datos","Un mapeador objeto‑relacional que traduce clases ↔ tablas","Un tipo de servidor web","Un motor de plantillas"], a:1 },
+    { q:"¿Qué anotación marca una clase como entidad JPA?", o:["@Repository","@Entity","@Model","@DataEntity"], a:1 },
+    { q:"¿Qué anotación identifica la clave primaria?", o:["@Primary","@Id","@Key","@PK"], a:1 },
+    { q:"¿Qué relación corresponde a 'muchos‑a‑uno'?", o:["@OneToMany","@ManyToOne","@OneToOne","@ManyToMany"], a:1 },
+    { q:"¿Qué es el contexto de persistencia?", o:["Un archivo de configuración","El conjunto de entidades gestionadas en memoria por JPA","La base de datos física","La configuración de seguridad"], a:1 },
+    { q:"El estado 'managed' significa que…", o:["La entidad está sincronizada con la BD y controlada por el EntityManager","La entidad está eliminada","Nunca ha sido persistida","Es un dato inmutable"], a:0 },
+    { q:"¿Cuál es la forma correcta de definir relación bidireccional OneToMany?", o:["Solo @OneToMany sin mappedBy","@OneToMany + @ManyToOne con mappedBy en el lado 'uno'","@ManyToMany por defecto","@Entity sin relaciones"], a:1 },
+    { q:"¿Qué hace CascadeType.PERSIST?", o:["Elimina entidades relacionadas","Propaga persist() a entidades dependientes","Cierra conexiones","Activa logs"], a:1 },
+    { q:"¿Qué hace FetchType.LAZY?", o:["Carga todo inmediatamente","Solo carga relaciones cuando se necesitan","Desactiva cache","Exige usar SQL manual"], a:1 },
+    { q:"¿Qué ocurre si una entidad no tiene constructor vacío?", o:["Nada, no es necesario","JPA podría fallar al instanciarla","Solo afecta a test","La ignora"], a:1 },
+    { q:"¿Qué interfaz de Spring Data se usa para CRUD básico?", o:["JpaRepository","JdbcClient","CrudController","RepositoryBean"], a:0 },
+    { q:"¿Qué es una transacción?", o:["Una operación lógica que debe completarse completamente o revertirse","Un commit parcial","Una consulta sin estado","Un log de eventos"], a:0 }
   ]
 };
 
-// ==============================
-//             MOTOR DEL TEST
-// ==============================
 let i=0, points=0, hits=0;
 
 function mostrar(){
-  document.getElementById("counter").textContent =
-    "Pregunta " + (i+1) + " / " + QUIZ.items.length;
-
+  document.getElementById("counter").textContent = "Pregunta " + (i+1) + " / " + QUIZ.items.length;
   document.getElementById("points").textContent = points;
-
   const q=QUIZ.items[i];
   document.getElementById("qtext").textContent=q.q;
-
   const box=document.getElementById("options");
   box.innerHTML="";
-
   q.o.forEach((txt,idx)=>{
     const btn=document.createElement("button");
     btn.className="opt";
@@ -156,50 +129,33 @@ function responder(idx){
   mostrar();
 }
 
-// ==============================
-//               FINAL
-// ==============================
-function final(){
+async function final(){
   document.getElementById("quiz-card").style.display="none";
   const res=document.getElementById("result");
   res.style.display="block";
-
   document.getElementById("r_points").textContent=points;
   document.getElementById("r_hits").textContent=hits;
   document.getElementById("r_total").textContent=QUIZ.items.length;
 
-  enviarResultadosMicrosoftForms();
+  // --- ACTUALIZACIÓN AUTOMÁTICA EN SUPABASE ---
+  const nombreGuardado = localStorage.getItem('alumnoActivo');
+  if (nombreGuardado) {
+      const { error } = await _supabase
+          .from('resultados')
+          .update({ nota: points })
+          .match({ alumno: nombreGuardado, examen: 'persistencia' });
+      if (error) console.error("Error al actualizar nota:", error);
+  }
 
-  // Botón "Volver al inicio" generado por JS (INFALIBLE)
+  const btnBox = document.getElementById("btn-container");
   const volver=document.createElement("button");
   volver.className="btn";
   volver.textContent="⬅️ Volver al inicio";
   volver.onclick=()=>{location.href="index.html";};
-  res.appendChild(volver);
+  btnBox.appendChild(volver);
 }
 
-// ==============================
-//     ENVÍO A MICROSOFT FORMS
-// ==============================
-function enviarResultadosMicrosoftForms(){
-  let alumno=prompt("Introduce tu nombre para enviar los resultados:");
-
-  const formUrl=
-"https://forms.office.com/Pages/ResponsePage.aspx?id=ngQeNX4HTkSgrjTR0Ryhv5lfEUnAIIdAvpBD2nxYPONURDNDVElLWEFJUFFWOTZTVERSQk9BQjlDMC4u";
-
-  const data=new FormData();
-  data.append("rf01a18cc054f44dd84d73f76b3c6810f", alumno);            // Nombre
-  data.append("rc6bf3a21d86842518d65daed218afaf5", QUIZ.meta.title); // Cuestionario
-  data.append("rc3d9c564eafa44f5a172beac5243902f", hits);            // Aciertos
-  data.append("r4ed2d12d0d9c412d94fc49d52057426d", points);          // Puntos
-  data.append("r28d95b8810384a15ba1172f72c59bb2f", new Date().toLocaleString());
-
-  fetch(formUrl,{method:"POST",mode:"no-cors",body:data});
-}
-
-// inicio
 mostrar();
 </script>
-
 </body>
 </html>
